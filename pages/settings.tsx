@@ -21,7 +21,8 @@ export default function SettingsPage() {
   // console.log('html.classList', document.documentElement.classList);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 p-6 space-y-8">
+    <div className="min-h-screen p-6 space-y-8">
+      {' '}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Settings</h1>
         <button
@@ -31,7 +32,6 @@ export default function SettingsPage() {
           ← Back to Chat
         </button>
       </div>
-
       {/* Profile */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">👤 Profile</h2>
@@ -52,10 +52,6 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
-      <div className="p-4 bg-gray-100 dark:bg-gray-800 text-black dark:text-white">
-        Testing dark mode colors!
-      </div>
-
       {/* Personalization */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">💞 AI Girlfriend</h2>
@@ -127,7 +123,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </section>
-
       {/* Memory & Chat */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🧠 Memory & Chat</h2>
@@ -148,16 +143,18 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
-
       {/* Appearance */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🎨 Appearance</h2>
         <div className="flex items-center justify-between">
           <span>Dark Mode</span>
-          <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
+          <input
+            type="checkbox"
+            checked={darkMode}
+            onChange={(e) => toggleDarkMode()}
+          />
         </div>
       </section>
-
       {/* Chat History */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🕒 Chat History</h2>
