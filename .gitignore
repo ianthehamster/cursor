@@ -46,3 +46,7 @@ convex/_generated/
 
 # Ignore temporary memory json files
 temp_memory_*.json
+
+# Ignore temporary media and cache
+tmp/
+*.webm
