@@ -1,5 +1,5 @@
 // /components/ChatWindow.tsx (with typing dots only, no animatingText)
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { PlayCircle, PauseCircle, UserCircle } from "lucide-react";
 import { useRouter } from "next/router";
