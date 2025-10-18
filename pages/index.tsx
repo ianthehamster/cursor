@@ -13,8 +13,11 @@ export default function Home() {
       <Head>
         <title>ChronoCrush</title>
       </Head>
-      <main className="h-screen w-screen">
-        <ChatWindow character="jinx" />
+      <main className="h-screen w-screen flex items-center justify-center bg-white">
+        {/* Mobile app container with white sidebars */}
+        <div className="relative w-full max-w-md h-full bg-white shadow-2xl">
+          <ChatWindow character="jinx" />
+        </div>
       </main>
     </>
   );
