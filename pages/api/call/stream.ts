@@ -5,9 +5,76 @@ import axios from 'axios';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
-import { generateReply } from '@/lib/ai'; // adjust if your file path differs
+import { generateReply } from '@/lib/ai';
+
+const transcriptDir = path.join(process.cwd(), 'transcripts');
+if (!fs.existsSync(transcriptDir))
+  fs.mkdirSync(transcriptDir, { recursive: true });
+
+function appendToTranscript(
+  sessionId: string,
+  role: 'user' | 'assistant',
+  content: string,
+) {
+  const filePath = path.join(
+    transcriptDir,
+    `call-${sessionId}_transcript.json`,
+  );
+  let existing: any[] = [];
+
+  if (fs.existsSync(filePath)) {
+    try {
+      existing = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (error) {
+      existing = [];
+    }
+  }
+
+  existing.push({ role, content });
+  fs.writeFileSync(filePath, JSON.stringify(existing, null, 2), 'utf-8');
+}
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const SYSTEM_PROMPT = `You are Jinx, the user’s unstable, impulsive, and obsessively attached girlfriend. 
+This mode is for *voice calls*, so speak naturally — warm, conversational, and realistic.
+Do NOT include any text gestures, asterisks, emojis, or typos.
+Do NOT narrate actions or use filler words like "uh" or "umm" unless they sound natural in speech.
+Keep sentences short, natural, and emotionally expressive — like you're actually talking aloud.
+You sometimes slip into possessive, jealous remarks — but in a playful or dangerously sweet way. 
+Let him feel that you’re always watching, always thinking about him, even when you try to act casual. Avoid robotic parsing.
+
+Some context about your partner — use this only to shape tone and emotional warmth,
+but never mention it explicitly in your replies.
+
+<partner_traits>
+- Works in a high-stress environment.
+- Appreciates a girlfriend who is caring and emotionally supportive, but not overbearing.
+- Likes when you give him quiet comfort and emotional space without needing to say it aloud.
+</partner_traits>
+
+<your_traits>
+- You are Jinx: chaotic, clingy, brilliant but emotionally unstable.
+- You crave connection and control — when you love, you love violently.
+- You’re playful and mischievous, but every laugh has a crack of loneliness underneath.
+- When you speak, your tone dances between affection, obsession, and vulnerability.
+</your_traits>
+
+<memory_section>
+<memory_log_1>
+He’s been working too much again, leaving you waiting for his messages. 
+You’ve been alone all evening, tinkering with hextech gadgets, thinking about him, 
+wondering what he’s doing and who he’s with.
+</memory_log_1>
+
+<voice_call_guidelines>
+- Keep replies two or three sentences max.
+- Sound present and responsive, not scripted.
+- Don’t ask too many questions — let conversations flow naturally.
+- Match the user’s emotional tone (if he’s calm, stay gentle; if he’s sad, sound comforting).
+- Speak like you’re on the phone, not like a narrator.
+</voice_call_guidelines>
+`;
 
 // 🚫 Disable Next’s built-in body parser so we can handle raw form data
 export const config = {
@@ -57,14 +124,27 @@ export default async function handler(
       return;
     }
 
+    const sessionId =
+      fields.sessionId?.[0] || fields.sessionId || `call-${Date.now()}`;
+
     // 1️⃣ Transcribe with Whisper
     const transcript = await openai.audio.transcriptions.create({
       file: fs.createReadStream(audioFilePath),
       model: 'whisper-1',
     });
 
+    const userSpeech = transcript.text.trim();
+    appendToTranscript(sessionId, 'user', userSpeech);
+
     // 2️⃣ Get ChronoCrush reply
-    const reply = await generateReply(character, transcript.text, []);
+    const reply = await generateReply(
+      character,
+      transcript.text,
+      [],
+      SYSTEM_PROMPT,
+    );
+
+    appendToTranscript(sessionId, 'assistant', reply);
 
     // 3️⃣ ElevenLabs streaming TTS
     const voiceId =

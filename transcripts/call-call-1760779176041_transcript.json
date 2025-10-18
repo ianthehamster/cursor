@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Hi babe, would you create any hextech gadgets today?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey! Yeah, I was messing around with something earlier... tried to make this little pulse bomb that responds to sound frequencies. It kinda worked? Then it exploded in my face. But like, in a fun way.\n\nI missed hearing your voice today. What've you been up to?"
+  }
+]

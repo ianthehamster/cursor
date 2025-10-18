@@ -171,9 +171,8 @@ export default function ChatWindow({ character }: Props) {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="flex items-center justify-between px-4 py-2 border-t">
-        <VoiceCallButton character={character} />
-      </div>
+      {/* Call overlay */}
+      <VoiceCallButton character={character} />
 
       {/* Input bar */}
       <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
