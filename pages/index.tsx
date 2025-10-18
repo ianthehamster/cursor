@@ -1,5 +1,9 @@
 import Head from 'next/head';
-import ChatWindow from '@/components/ChatWindow';
+import dynamic from 'next/dynamic';
+
+const ChatWindow = dynamic(() => import('@/components/ChatWindow'), {
+  ssr: false,
+});
 
 export default function Home() {
   return (
