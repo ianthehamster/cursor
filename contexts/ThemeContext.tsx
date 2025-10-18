@@ -23,13 +23,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark'); // ✅ fixed
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark'); // ✅ fixed
-      localStorage.setItem('theme', 'light');
-    }
+    const body = document.body;
+    const apply = (enable: boolean) => {
+      const action = enable ? 'add' : 'remove';
+      root.classList[action]('dark');
+      body.classList[action]('dark');
+      root.style.colorScheme = enable ? 'dark' : 'light';
+      localStorage.setItem('theme', enable ? 'dark' : 'light');
+    };
+    apply(darkMode);
     console.log('🌗 Applied dark mode:', darkMode);
   }, [darkMode]);
 

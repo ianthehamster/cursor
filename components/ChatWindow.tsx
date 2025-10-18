@@ -75,9 +75,9 @@ export default function ChatWindow({ character }: Props) {
       : 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg';
 
   return (
-    <div className="flex flex-col h-screen bg-white relative">
+    <div className="flex flex-col h-screen bg-white dark:bg-zinc-900 text-black dark:text-white relative transition-colors">
       {/* Top bar */}
-      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200">
+      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 dark:border-zinc-700">
         <h1 className="text-lg font-semibold">
           {character === 'jinx' ? 'Jinx' : 'Miss Fortune'}
         </h1>
@@ -86,7 +86,7 @@ export default function ChatWindow({ character }: Props) {
             <UserCircle className="w-7 h-7 text-gray-600 hover:text-blue-600 transition" />
           </button>
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg text-sm z-50">
+            <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-md shadow-lg text-sm z-50">
               <button
                 onClick={() => router.push('/settings')}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -124,7 +124,7 @@ export default function ChatWindow({ character }: Props) {
                 ${
                   msg.role === 'user'
                     ? 'bg-blue-600 text-white rounded-br-none'
-                    : 'bg-gray-100 text-gray-900 rounded-bl-none'
+                    : 'bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 rounded-bl-none'
                 }`}
               >
                 {msg.content}
@@ -154,7 +154,7 @@ export default function ChatWindow({ character }: Props) {
                 className="w-8 h-8 rounded-full shadow-md"
                 alt="avatar"
               />
-              <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-2xl rounded-bl-none">
+              <div className="bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 px-4 py-2 rounded-2xl rounded-bl-none">
                 <l-bouncy size="20" speed="1.75" color="black"></l-bouncy>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function ChatWindow({ character }: Props) {
       </div>
 
       {/* Input bar */}
-      <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+      <div className="sticky bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-700 p-4">
         <div className="flex items-center gap-2">
           <input
             value={input}
@@ -179,7 +179,7 @@ export default function ChatWindow({ character }: Props) {
             placeholder={`Talk to ${
               character === 'jinx' ? 'Jinx' : 'Miss Fortune'
             }...`}
-            className="flex-1 bg-gray-100 text-black border border-gray-300 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-gray-100 dark:bg-zinc-800 text-black dark:text-white border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={sendMessage}
