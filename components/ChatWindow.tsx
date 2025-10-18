@@ -155,7 +155,7 @@ export default function ChatWindow({ character }: Props) {
                 alt="avatar"
               />
               <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-2xl rounded-bl-none">
-                <l-bouncy size="20" speed="1.75" color="white"></l-bouncy>
+                <l-bouncy size="20" speed="1.75" color="black"></l-bouncy>
               </div>
             </div>
           </div>
