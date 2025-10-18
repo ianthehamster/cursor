@@ -6,7 +6,6 @@ import { useRouter } from 'next/router';
 import { bouncy } from 'ldrs';
 import VoiceCallButton from './VoiceCallButton';
 
-bouncy.register();
 interface Props {
   character: 'jinx' | 'mf';
 }
@@ -22,6 +21,11 @@ export default function ChatWindow({ character }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Register bouncy component on client-side only
+  useEffect(() => {
+    bouncy.register();
+  }, []);
 
   useEffect(() => {
     if (messagesEndRef.current) {
