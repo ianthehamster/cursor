@@ -262,7 +262,7 @@ export default function VoiceCallButton({
             alt={character}
           />
           <h2 className="text-xl font-semibold mb-1">
-            {character === 'jinx' ? 'Jinx' : 'Miss Fortune'}
+            {character === 'jinx' ? 'Jinx' : 'Chloe'}
           </h2>
           <p className="text-gray-300 text-sm mb-8">
             {recording ? 'Listening...' : 'Thinking...'}

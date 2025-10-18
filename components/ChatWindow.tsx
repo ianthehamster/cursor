@@ -28,6 +28,7 @@ export default function ChatWindow({ character }: Props) {
   const [nextBg, setNextBg] = useState("");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [enableTransition, setEnableTransition] = useState(true);
+  const [currentScenario, setCurrentScenario] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -38,11 +39,37 @@ export default function ChatWindow({ character }: Props) {
     bouncy.register();
   }, []);
 
-  // Fetch background images on mount
+  // Fetch background images on mount with scenario selection
   useEffect(() => {
     const fetchBackgrounds = async () => {
       try {
-        const res = await axios.get("/api/backgrounds");
+        // First, check if we have a stored scenario for this session
+        const sessionKey = `scenario_${character}`;
+        let scenario = sessionStorage.getItem(sessionKey);
+
+        // If no stored scenario, fetch available scenarios and pick one randomly
+        if (!scenario) {
+          const scenariosRes = await axios.get(`/api/backgrounds?character=${character}`);
+          const availableScenarios = scenariosRes.data.scenarios || [];
+
+          if (availableScenarios.length > 0) {
+            // Randomly select a scenario
+            const selectedScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+            scenario = selectedScenario;
+            // Store it for this session
+            sessionStorage.setItem(sessionKey, selectedScenario);
+          }
+        }
+
+        if (!scenario) {
+          throw new Error('No scenarios available');
+        }
+
+        console.log(`🎬 Selected scenario for ${character}: ${scenario}`);
+        setCurrentScenario(scenario);
+
+        // Fetch images for the selected scenario
+        const res = await axios.get(`/api/backgrounds?character=${character}&scenario=${scenario}`);
         const images = res.data.images || [];
         setBackgroundImages(images);
         if (images.length > 0) {
@@ -51,12 +78,13 @@ export default function ChatWindow({ character }: Props) {
       } catch (error) {
         console.error("Failed to fetch background images:", error);
         // Fallback to a default image if API fails
-        setBackgroundImages(["/ai-gf-whisking.png"]);
-        setCurrentBg("/ai-gf-whisking.png");
+        const fallback = character === 'jinx' ? '/jinx/jinx punk rock 1.png' : '/chloe/chloe barista 2.png';
+        setBackgroundImages([fallback]);
+        setCurrentBg(fallback);
       }
     };
     fetchBackgrounds();
-  }, []);
+  }, [character]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -151,8 +179,8 @@ export default function ChatWindow({ character }: Props) {
 
   const avatar =
     character === 'jinx'
-      ? 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg'
-      : 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg';
+      ? '/jinx portrait.jpg'
+      : '/chloe portrait.jpg';
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -185,8 +213,19 @@ export default function ChatWindow({ character }: Props) {
         title="Click to change background (temporary)"
       />
 
-      {/* Voice Call Button */}
-      <VoiceCallButton character={character} />
+      {/* Voice Call Button - Only show for Jinx */}
+      {character === 'jinx' && <VoiceCallButton character={character} />}
+
+      {/* Scenario Badge - Top Center */}
+      {currentScenario && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-700 capitalize">
+              📍 {currentScenario.replace(/-/g, ' ')}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* User Menu - Top Left */}
       <div className="absolute top-4 left-4 z-20">
@@ -239,7 +278,7 @@ export default function ChatWindow({ character }: Props) {
               priority
             />
             <span className="font-medium text-gray-800">
-              {character === "jinx" ? "Jinx" : "Miss Fortune"}
+              {character === "jinx" ? "Jinx" : "Chloe"}
             </span>
           </div>
           <button className="text-gray-600">
@@ -336,7 +375,7 @@ export default function ChatWindow({ character }: Props) {
                     }
                   }}
                   placeholder={`Talk to ${
-                    character === "jinx" ? "Jinx" : "Miss Fortune"
+                    character === "jinx" ? "Jinx" : "Chloe"
                   }...`}
                   className="flex-1 bg-gray-100 text-black border border-gray-300 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-500"
                 />

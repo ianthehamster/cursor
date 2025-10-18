@@ -21,7 +21,7 @@ async function generateClaudeReply(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
     max_tokens: 200,
-    temperature: 0.8,
+    temperature: 0.7,
     system: systemPrompt,
     messages,
   });

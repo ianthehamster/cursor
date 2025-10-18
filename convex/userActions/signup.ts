@@ -5,7 +5,7 @@ import { api } from '../_generated/api'; // ✅ import the typed API
 import bcrypt from 'bcryptjs';
 
 export const signup = action(
-  async (ctx, args: { username: string; password: string; name: string }) => {
+  async (ctx, args: { username: string; password: string; name: string; character: 'Chloe' | 'Jinx' }) => {
     // ✅ use typed reference instead of string
     const existing = await ctx.runQuery(api.users.findUser, {
       username: args.username,
@@ -19,6 +19,7 @@ export const signup = action(
       username: args.username,
       password: hashedPassword,
       name: args.name,
+      character: args.character,
     });
 
     return 'User created';

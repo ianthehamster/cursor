@@ -17,6 +17,7 @@ export interface Conversation {
   _id: Id<'conversations'>;
   messages: Message[];
   systemPrompt: string;
+  character: 'Chloe' | 'Jinx';
   _creationTime: number;
 }
 
@@ -37,11 +38,13 @@ export async function getConversation(
 // Create a new conversation
 export async function createConversation(
   systemPrompt: string,
+  character: 'Chloe' | 'Jinx',
   messages: Message[] = []
 ): Promise<Id<'conversations'> | null> {
   try {
     return await convexClient.mutation(api.conversations.create, {
       systemPrompt,
+      character,
       messages,
     });
   } catch (err) {

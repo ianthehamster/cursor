@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { LogOut } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const [memoryEnabled, setMemoryEnabled] = useState(true);
 
   const { darkMode, toggleDarkMode } = useTheme();
+
   // wait or block unauthorized access
   if (status === 'loading') return <p>Loading...</p>;
   if (!session) {
@@ -27,6 +28,35 @@ export default function SettingsPage() {
   }
 
   console.log('User session:', session);
+
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: session?.user?.username,
+        }),
+      });
+
+      if (res.ok) {
+        await signOut({ redirect: false });
+        router.push('/signup');
+      } else {
+        const data = await res.json();
+        alert(`Failed to delete account: ${data.error}`);
+      }
+    } catch (error) {
+      alert('An error occurred while deleting your account');
+      console.error(error);
+    }
+  };
 
   return (
     <div className="min-h-screen p-6 space-y-8">
@@ -73,7 +103,7 @@ export default function SettingsPage() {
               className="w-full border p-2 rounded"
             >
               <option value="jinx">Jinx</option>
-              <option value="mf">Miss Fortune</option>
+              <option value="mf">Chloe</option>
             </select>
           </div>
           <div>
@@ -126,7 +156,7 @@ export default function SettingsPage() {
               className="w-full border p-2 rounded"
             >
               <option>Soft Jinx</option>
-              <option>Miss Fortune Classic</option>
+              <option>Chloe Classic</option>
               <option>Cybernetic Echo</option>
             </select>
           </div>
@@ -183,6 +213,21 @@ export default function SettingsPage() {
             </div>
           </li>
         </ul>
+      </section>
+      {/* Danger Zone */}
+      <section className="space-y-2 border-t-2 border-red-200 pt-6">
+        <h2 className="text-lg font-semibold text-red-600">⚠️ Danger Zone</h2>
+        <div className="bg-red-50 border border-red-200 rounded p-4 space-y-3">
+          <p className="text-sm text-red-700">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <button
+            onClick={handleDeleteAccount}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-medium transition-colors"
+          >
+            Delete Account
+          </button>
+        </div>
       </section>
     </div>
   );

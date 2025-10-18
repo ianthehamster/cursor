@@ -13,6 +13,7 @@ export const get = query({
 export const create = mutation({
   args: {
     systemPrompt: v.string(),
+    character: v.union(v.literal('Chloe'), v.literal('Jinx')),
     messages: v.optional(
       v.array(
         v.object({
@@ -26,6 +27,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const conversationId = await ctx.db.insert('conversations', {
       systemPrompt: args.systemPrompt,
+      character: args.character,
       messages: args.messages || [],
     });
     return conversationId;
@@ -89,6 +91,19 @@ export const updateSystemPrompt = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.conversationId, {
       systemPrompt: args.systemPrompt,
+    });
+  },
+});
+
+// Update character
+export const updateCharacter = mutation({
+  args: {
+    conversationId: v.id('conversations'),
+    character: v.union(v.literal('Chloe'), v.literal('Jinx')),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.conversationId, {
+      character: args.character,
     });
   },
 });

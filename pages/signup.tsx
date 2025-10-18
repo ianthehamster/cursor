@@ -16,9 +16,9 @@ export default function SignupPage() {
     setMessage('');
 
     try {
-      await axios.post('/api/signup', { username, name, password });
-      setMessage('✅ Account created! Redirecting to login...');
-      setTimeout(() => router.push('/login'), 1500);
+      await axios.post('/api/signup', { username, name, password, character: 'Chloe' });
+      setMessage('✅ Account created! Choose your companion...');
+      setTimeout(() => router.push('/onboarding'), 1500);
     } catch (err: any) {
       if (err.response?.data?.error === 'Username already exists') {
         setMessage('⚠️ That email is already registered.');
