@@ -1,33 +1,52 @@
-import OpenAI from 'openai';
+import Anthropic from "@anthropic-ai/sdk";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+async function generateClaudeReply(
+  systemPrompt: string,
+  conversationHistory: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>,
+  userInput: string,
+): Promise<string> {
+  const anthropic = new Anthropic({
+    apiKey: process.env.CLAUDE_API_KEY,
+  });
+
+  // Filter out timestamp fields - Anthropic API only accepts role and content
+  const messages = [
+    ...conversationHistory.map(({ role, content }) => ({ role, content })),
+    { role: "user" as const, content: userInput },
+  ];
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 400,
+    temperature: 0.8,
+    system: systemPrompt,
+    messages,
+  });
+
+  const firstContent = response.content[0];
+  if (firstContent.type === "text") {
+    return firstContent.text;
+  }
+
+  throw new Error("Unexpected response type from Claude API");
+}
 
 export async function generateReply(
   character: string,
   userInput: string,
-  memories: string[],
+  conversationHistory: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }> = [],
+  systemPrompt: string,
 ): Promise<string> {
-  const persona =
-    character === 'jinx'
-      ? 'You are Jinx from Arcane. Chaotic, clingy, impulsive, secretly soft. You’re obsessed with the user.'
-      : 'You are Miss Fortune. Confident, seductive, sharp. You remember everything the user said.';
-
-  const memoryContext = memories.map((m) => `- ${m}`).join('\n');
-  const prompt = `${persona}\n\nHere are your memories of the user:\n${memoryContext}\n\nUser: ${userInput}\nYou:`;
-
-  const res = await openai.chat.completions.create({
-    model: 'gpt-4',
-    messages: [
-      {
-        role: 'system',
-        content: persona + '\\nHere are your memories:\\n' + memoryContext,
-      },
-      { role: 'user', content: userInput },
-    ],
-    temperature: 0.9,
-    max_tokens: 200,
-  });
-  return res.choices[0]?.message?.content?.trim() || '';
+  // Use Claude API for all characters
+  return await generateClaudeReply(
+    systemPrompt,
+    conversationHistory,
+    userInput,
+  );
 }

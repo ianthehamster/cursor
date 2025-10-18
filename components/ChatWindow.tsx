@@ -1,19 +1,18 @@
 // /components/ChatWindow.tsx (with typing dots only, no animatingText)
-import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import { PlayCircle, PauseCircle, UserCircle } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { bouncy } from 'ldrs';
+import { useState, useRef, useEffect } from "react";
+import axios from "axios";
+import { PlayCircle, PauseCircle, UserCircle } from "lucide-react";
+import { useRouter } from "next/router";
+import { bouncy } from "ldrs";
 
-bouncy.register();
 interface Props {
-  character: 'jinx' | 'mf';
+  character: "jinx" | "mf";
 }
 
 export default function ChatWindow({ character }: Props) {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [messages, setMessages] = useState<
-    { role: 'user' | 'bot'; content: string; audioUrl?: string }[]
+    { role: "user" | "bot"; content: string; audioUrl?: string }[]
   >([]);
   const [loading, setLoading] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
@@ -22,35 +21,40 @@ export default function ChatWindow({ character }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Register bouncy component on client-side only
+  useEffect(() => {
+    bouncy.register();
+  }, []);
+
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
 
   const sendMessage = async (): Promise<void> => {
     if (!input.trim()) return;
     const userMsg = input.trim();
-    setMessages((prev) => [...prev, { role: 'user', content: userMsg }]);
-    setInput('');
+    setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
+    setInput("");
     setLoading(true);
 
     try {
-      const res = await axios.post('/api/chat', { input: userMsg, character });
-      const reply = res.data.reply || '...';
+      const res = await axios.post("/api/chat", { input: userMsg, character });
+      const reply = res.data.reply || "...";
       const audioUrl = res.data.audioUrl || null;
 
       setMessages((prev) => [
         ...prev,
-        { role: 'bot', content: reply, audioUrl },
+        { role: "bot", content: reply, audioUrl },
       ]);
 
       if (audioUrl) playAudio(audioUrl);
     } catch (err) {
-      console.error('Chat error:', err);
+      console.error("Chat error:", err);
       setMessages((prev) => [
         ...prev,
-        { role: 'bot', content: '⚠️ Failed to fetch reply.' },
+        { role: "bot", content: "⚠️ Failed to fetch reply." },
       ]);
     } finally {
       setLoading(false);
@@ -64,15 +68,15 @@ export default function ChatWindow({ character }: Props) {
     }
     const newAudio = new Audio(url);
     audioRef.current = newAudio;
-    if (typeof index === 'number') setPlayingIndex(index);
+    if (typeof index === "number") setPlayingIndex(index);
     newAudio.play();
     newAudio.onended = () => setPlayingIndex(null);
   };
 
   const avatar =
-    character === 'jinx'
-      ? 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg'
-      : 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg';
+    character === "jinx"
+      ? "https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg"
+      : "https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg";
 
   return (
     <div className="flex flex-col h-screen relative">
@@ -81,7 +85,7 @@ export default function ChatWindow({ character }: Props) {
       {/* Top bar */}
       <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200">
         <h1 className="text-lg font-semibold">
-          {character === 'jinx' ? 'Jinx' : 'Miss Fortune'}
+          {character === "jinx" ? "Jinx" : "Miss Fortune"}
         </h1>
         <div className="relative">
           <button onClick={() => setShowUserMenu((prev) => !prev)}>
@@ -90,7 +94,7 @@ export default function ChatWindow({ character }: Props) {
           {showUserMenu && (
             <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg text-sm z-50">
               <button
-                onClick={() => router.push('/settings')}
+                onClick={() => router.push("/settings")}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100"
               >
                 Settings
@@ -106,15 +110,15 @@ export default function ChatWindow({ character }: Props) {
           <div
             key={idx}
             className={`flex ${
-              msg.role === 'user' ? 'justify-end' : 'justify-start'
+              msg.role === "user" ? "justify-end" : "justify-start"
             }`}
           >
             <div
               className={`flex items-end gap-2 max-w-[75%] ${
-                msg.role === 'user' ? 'flex-row-reverse' : ''
+                msg.role === "user" ? "flex-row-reverse" : ""
               }`}
             >
-              {msg.role === 'bot' && (
+              {msg.role === "bot" && (
                 <img
                   src={avatar}
                   className="w-8 h-8 rounded-full shadow-md"
@@ -124,14 +128,14 @@ export default function ChatWindow({ character }: Props) {
               <div
                 className={`rounded-2xl px-4 py-2 text-sm leading-relaxed shadow 
                 ${
-                  msg.role === 'user'
-                    ? 'bg-blue-600 text-white rounded-br-none'
-                    : 'bg-gray-100 text-gray-900 rounded-bl-none'
+                  msg.role === "user"
+                    ? "bg-blue-600 text-white rounded-br-none"
+                    : "bg-gray-100 text-gray-900 rounded-bl-none"
                 }`}
               >
                 {msg.content}
               </div>
-              {msg.role === 'bot' && msg.audioUrl && (
+              {msg.role === "bot" && msg.audioUrl && (
                 <button
                   onClick={() => playAudio(msg.audioUrl!, idx)}
                   className="text-blue-500"
@@ -173,13 +177,13 @@ export default function ChatWindow({ character }: Props) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
               }
             }}
             placeholder={`Talk to ${
-              character === 'jinx' ? 'Jinx' : 'Miss Fortune'
+              character === "jinx" ? "Jinx" : "Miss Fortune"
             }...`}
             className="flex-1 bg-gray-100 text-black border border-gray-300 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
           />
