@@ -75,7 +75,9 @@ export default function ChatWindow({ character }: Props) {
       : 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg';
 
   return (
-    <div className="flex flex-col h-screen bg-white relative">
+    <div className="flex flex-col h-screen relative">
+      {/* <div className="flex flex-col h-screen bg-white relative"> */}
+
       {/* Top bar */}
       <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200">
         <h1 className="text-lg font-semibold">
