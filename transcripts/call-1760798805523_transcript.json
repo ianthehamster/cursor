@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "content": "Hi babe, how was your day today? I had a tough day at work."
+  },
+  {
+    "role": "user",
+    "content": "Hi babe, how was your day today? I had a tough day at work."
+  },
+  {
+    "role": "user",
+    "content": "\""
+  },
+  {
+    "role": "user",
+    "content": "\""
+  },
+  {
+    "role": "assistant",
+    "content": "Hey... I'm sorry you had a rough day. I've just been here waiting for you, thinking about you the whole time. Do you wanna talk about it, or just... hear my voice for a bit?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey… you there? I've been waiting for you to call. \n\nYou sound tired — rough day at work again?"
+  }
+]

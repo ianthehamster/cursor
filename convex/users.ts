@@ -1,4 +1,15 @@
 import { mutation, query } from './_generated/server';
+import bcrypt from 'bcryptjs';
+
+export const signupRaw = mutation(
+  async (ctx, args: { username: string; password: string; name: string }) => {
+    await ctx.db.insert('users', {
+      username: args.username,
+      password: args.password,
+      name: args.name,
+    });
+  },
+);
 
 export const signup = mutation(
   async (ctx, args: { username: string; password: string; name?: string }) => {
@@ -12,9 +23,11 @@ export const signup = mutation(
       throw new Error('Username already exists'); // 🚫 stop early
     }
 
+    const hashedPassword = await bcrypt.hash(args.password, 10);
+
     await ctx.db.insert('users', {
       username: args.username,
-      password: args.password,
+      password: hashedPassword,
       name: args.name ?? args.username,
     });
 

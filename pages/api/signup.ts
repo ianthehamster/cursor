@@ -9,17 +9,19 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   if (req.method !== 'POST') return res.status(405).end();
-  const { username, password } = req.body;
+  const { username, password, name } = req.body;
 
   try {
-    await client.mutation(api.users.signup, { username, password });
+    await client.action(api.userActions.signup.signup, {
+      username,
+      password,
+      name,
+    });
     res.status(200).json({ ok: true });
   } catch (e) {
     const err = e as Error; // ✅ fix “e is of type unknown”
-    res
-      .status(400)
-      .json({
-        error: err.message || 'Signup failed. Is user already registered?',
-      });
+    res.status(400).json({
+      error: err.message || 'Signup failed. Is user already registered?',
+    });
   }
 }

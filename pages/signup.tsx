@@ -4,7 +4,8 @@ import { useRouter } from 'next/router';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(''); // will be the email
+  const [name, setName] = useState(''); // display name
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,11 +16,15 @@ export default function SignupPage() {
     setMessage('');
 
     try {
-      await axios.post('/api/signup', { username, password });
-      setMessage('Account created! Redirecting to login...');
-      setTimeout(() => router.push('/login'), 1500); // ⏩ go to login after 1.5s
-    } catch (err) {
-      setMessage('❌ Signup failed. User might already exist.');
+      await axios.post('/api/signup', { username, name, password });
+      setMessage('✅ Account created! Redirecting to login...');
+      setTimeout(() => router.push('/login'), 1500);
+    } catch (err: any) {
+      if (err.response?.data?.error === 'Username already exists') {
+        setMessage('⚠️ That email is already registered.');
+      } else {
+        setMessage('❌ Signup failed. Please try again.');
+      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -37,10 +42,20 @@ export default function SignupPage() {
         <input
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
+          placeholder="Email"
+          type="email"
           className="border p-2 w-full rounded"
           required
         />
+
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Display Name"
+          className="border p-2 w-full rounded"
+          required
+        />
+
         <input
           type="password"
           value={password}
@@ -60,7 +75,6 @@ export default function SignupPage() {
 
         <p className="text-sm text-center text-gray-600">{message}</p>
 
-        {/* optional reverse link */}
         <div className="text-center text-sm text-gray-600">
           Already have an account?{' '}
           <button

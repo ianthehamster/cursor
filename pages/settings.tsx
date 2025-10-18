@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useSession } from 'next-auth/react';
+import { LogOut } from 'lucide-react';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  const [username, setUsername] = useState('Ian');
+  const [username, setUsername] = useState('');
   const [nickname, setNickname] = useState('Jinxy');
   const [aiCharacter, setAiCharacter] = useState<'jinx' | 'mf'>('jinx');
   const [affection, setAffection] = useState(3);
@@ -25,8 +26,7 @@ export default function SettingsPage() {
     return null;
   }
 
-  // console.log('darkMode?', darkMode);
-  // console.log('html.classList', document.documentElement.classList);
+  console.log('User session:', session);
 
   return (
     <div className="min-h-screen p-6 space-y-8">
@@ -45,19 +45,20 @@ export default function SettingsPage() {
         <h2 className="text-lg font-semibold">👤 Profile</h2>
         <div className="flex flex-col gap-2">
           <input
-            value={username}
+            value={username === '' ? session?.user?.name || 'User' : username}
             onChange={(e) => setUsername(e.target.value)}
             className="border p-2 rounded"
             placeholder="Username"
           />
           <input
-            value="ian@email.com"
+            value={session?.user?.username || 'unknown@email.com'}
             disabled
             className="border p-2 rounded bg-gray-100"
           />
-          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm w-max">
-            Log Out
-          </button>
+          <LogOut
+            onClick={() => router.push('/api/auth/signout')}
+            className="cursor-pointer mt-3"
+          />
         </div>
       </section>
       {/* Personalization */}

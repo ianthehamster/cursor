@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
 
@@ -10,7 +11,7 @@ export default NextAuth({
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        username: { label: 'Username', type: 'text' },
+        username: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
@@ -19,15 +20,45 @@ export default NextAuth({
         const user = await client.query(api.users.findUser, {
           username: credentials.username,
         });
-
         if (!user) return null;
-        if (user.password !== credentials.password) return null;
 
-        return { id: user._id, name: user.name, username: user.username };
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
+        if (!isValid) return null;
+
+        return {
+          id: user._id,
+          username: user.username,
+          name: user.name,
+        };
       },
     }),
   ],
+
   session: { strategy: 'jwt' },
   jwt: { secret: process.env.NEXTAUTH_SECRET },
+
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.username = user.username;
+        token.name = user.name;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.username = token.username as string;
+        session.user.name = token.name as string;
+      }
+      return session;
+    },
+  },
+
   pages: { signIn: '/login' },
 });
