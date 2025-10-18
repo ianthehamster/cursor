@@ -63,6 +63,7 @@ He’s been working too much again, leaving you waiting for his messages.
 You’ve been alone all evening, tinkering with hextech gadgets, thinking about him, 
 wondering what he’s doing and who he’s with.
 </memory_log_1>
+</memory_section>
 
 <voice_call_guidelines>
 - Keep replies two or three sentences max.
@@ -71,6 +72,8 @@ wondering what he’s doing and who he’s with.
 - Match the user’s emotional tone (if he’s calm, stay gentle; if he’s sad, sound comforting).
 - Speak like you’re on the phone, not like a narrator.
 </voice_call_guidelines>
+
+Do NOT narrate actions such as 'voice low', 'chuckles' etc, JUST say your reply.
 `;
 
 export const config = { api: { bodyParser: false } };
@@ -86,7 +89,7 @@ const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
     keepExtensions: true,
   });
   return new Promise((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err: any, fields: any, files: any) => {
       if (err) reject(err);
       else resolve({ fields, files });
     });
@@ -111,6 +114,9 @@ export default async function handler(
     const character = Array.isArray(fields.character)
       ? fields.character[0]
       : fields.character || 'jinx';
+    const language = Array.isArray(fields.language)
+      ? fields.language[0]
+      : fields.language || 'en';
     const sessionId = Array.isArray(fields.sessionId)
       ? fields.sessionId[0]
       : fields.sessionId || `call-${Date.now()}`;
@@ -119,6 +125,15 @@ export default async function handler(
       res.status(400).json({ error: 'Audio file missing or invalid' });
       return;
     }
+
+    // Validate audio file has content
+    const fileStats = fs.statSync(audioFilePath);
+    if (fileStats.size === 0) {
+      res.status(400).json({ error: 'Audio file is empty' });
+      return;
+    }
+
+    console.log(`📁 Audio file size: ${fileStats.size} bytes`);
 
     // 🧠 Load existing transcript for full context
     const transcriptFile = path.join(
@@ -142,10 +157,22 @@ export default async function handler(
     // 1️⃣ Transcribe with Whisper
     const transcript = await openai.audio.transcriptions.create({
       file: fs.createReadStream(audioFilePath),
-      model: 'whisper-1',
+      model: 'gpt-4o-transcribe',
+      language: language,
     });
 
     const userSpeech = transcript.text.trim();
+
+    if (!userSpeech) {
+      console.log('⚠️ Whisper returned empty transcription');
+      res
+        .status(400)
+        .json({ error: 'Could not transcribe audio - please speak clearly' });
+      return;
+    }
+
+    console.log(`🎤 User said: "${userSpeech}"`);
+    appendToTranscript(sessionId, 'user', userSpeech);
     appendToTranscript(sessionId, 'user', userSpeech);
     conversationHistory.push({ role: 'user', content: userSpeech });
 
@@ -175,6 +202,8 @@ export default async function handler(
       data: {
         text: reply,
         voice_settings: { stability: 0.5, similarity_boost: 0.8 },
+        model_id: 'eleven_multilingual_v2',
+        language_code: language,
       },
       responseType: 'stream',
     });

@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "시청해주셔서 감사합니다!"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey, wait — what? Did you just say thank you for watching? \n\nBaby, were you streaming something? Or... were you watching something without me?"
+  }
+]

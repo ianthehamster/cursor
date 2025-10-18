@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
+    "@types/formidable": "^3.4.6",
     "axios": "^1.12.2",
     "convex": "^1.28.0",
     "formidable": "^3.5.4",
