@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import axios from 'axios';
-import formidable from 'formidable';
+import formidable, { Fields, Files, File } from 'formidable';
 import fs from 'fs';
 import path from 'path';
 import { generateReply } from '@/lib/ai';
@@ -17,7 +17,7 @@ function appendToTranscript(
 ) {
   const filePath = path.join(transcriptDir, `${sessionId}_transcript.json`);
 
-  let existing: any[] = [];
+  let existing: { role: 'user' | 'assistant'; content: string }[] = [];
 
   if (fs.existsSync(filePath)) {
     try {
@@ -79,7 +79,7 @@ Do NOT narrate actions such as 'voice low', 'chuckles' etc, JUST say your reply.
 export const config = { api: { bodyParser: false } };
 
 // helper for parsing multipart/form-data
-const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
+const parseForm = (req: NextApiRequest): Promise<{ fields: Fields; files: Files }> => {
   const uploadDir = path.join(process.cwd(), '/tmp');
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -89,7 +89,7 @@ const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
     keepExtensions: true,
   });
   return new Promise((resolve, reject) => {
-    form.parse(req, (err: any, fields: any, files: any) => {
+    form.parse(req, (err: Error | null, fields: Fields, files: Files) => {
       if (err) reject(err);
       else resolve({ fields, files });
     });
@@ -107,10 +107,10 @@ export default async function handler(
 
   try {
     const { fields, files } = await parseForm(req);
-    const fileData = (files as any).audio;
+    const fileData = files.audio as File | File[] | undefined;
     const audioFilePath = Array.isArray(fileData)
       ? fileData[0].filepath
-      : fileData.filepath;
+      : fileData?.filepath;
     const character = Array.isArray(fields.character)
       ? fields.character[0]
       : fields.character || 'jinx';
@@ -210,8 +210,9 @@ export default async function handler(
 
     res.setHeader('Content-Type', 'audio/mpeg');
     response.data.pipe(res);
-  } catch (err: any) {
-    console.error('❌ Voice call failed:', err.message || err);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error('❌ Voice call failed:', errorMessage);
     res.status(500).json({ error: 'Voice call failed.' });
   }
 }

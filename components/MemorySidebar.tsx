@@ -19,7 +19,7 @@ export default function MemorySidebar({ character }: Props) {
   return (
     <div>
       <h3 className="font-bold mb-2">
-        {character === 'jinx' ? 'Jinx' : 'Chloe'}'s Memory
+        {character === 'jinx' ? 'Jinx' : 'Chloe'}&apos;s Memory
       </h3>
       <ul className="text-sm space-y-1">
         {memories.map((mem, i) => (

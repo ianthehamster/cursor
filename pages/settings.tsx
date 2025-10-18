@@ -99,7 +99,7 @@ export default function SettingsPage() {
             <label className="block text-sm">Character</label>
             <select
               value={aiCharacter}
-              onChange={(e) => setAiCharacter(e.target.value as any)}
+              onChange={(e) => setAiCharacter(e.target.value as 'jinx' | 'mf')}
               className="w-full border p-2 rounded"
             >
               <option value="jinx">Jinx</option>
