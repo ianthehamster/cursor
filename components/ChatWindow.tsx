@@ -20,7 +20,15 @@ export default function ChatWindow({ character }: Props) {
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
-  const [backgroundImage, setBackgroundImage] = useState("/ai-gf-whisking.png");
+
+  // Background transition states
+  const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+  const [currentBg, setCurrentBg] = useState("");
+  const [nextBg, setNextBg] = useState("");
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [enableTransition, setEnableTransition] = useState(true);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -28,6 +36,26 @@ export default function ChatWindow({ character }: Props) {
   // Register bouncy component on client-side only
   useEffect(() => {
     bouncy.register();
+  }, []);
+
+  // Fetch background images on mount
+  useEffect(() => {
+    const fetchBackgrounds = async () => {
+      try {
+        const res = await axios.get("/api/backgrounds");
+        const images = res.data.images || [];
+        setBackgroundImages(images);
+        if (images.length > 0) {
+          setCurrentBg(images[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch background images:", error);
+        // Fallback to a default image if API fails
+        setBackgroundImages(["/ai-gf-whisking.png"]);
+        setCurrentBg("/ai-gf-whisking.png");
+      }
+    };
+    fetchBackgrounds();
   }, []);
 
   useEffect(() => {
@@ -77,6 +105,50 @@ export default function ChatWindow({ character }: Props) {
     newAudio.onended = () => setPlayingIndex(null);
   };
 
+  const changeBackground = () => {
+    // Don't change if no images are loaded yet
+    if (backgroundImages.length === 0) return;
+
+    // Calculate next index (rotate through images)
+    const nextIndex = (currentBgIndex + 1) % backgroundImages.length;
+    const newImageUrl = backgroundImages[nextIndex];
+
+    // First, set the next background (it will be rendered at opacity 0)
+    setNextBg(newImageUrl);
+
+    // Wait for the DOM to render the next background layer, then start transition
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsTransitioning(true);
+      });
+    });
+
+    // After transition completes, clean up
+    setTimeout(() => {
+      // Update currentBg while isTransitioning is still true (currentBg is at opacity 0)
+      setCurrentBg(newImageUrl);
+      setCurrentBgIndex(nextIndex);
+
+      // Wait for the browser to paint the updated currentBg
+      requestAnimationFrame(() => {
+        // Now disable transitions to snap opacity without animation
+        setEnableTransition(false);
+        setIsTransitioning(false);
+
+        // Wait one more frame for the opacity to snap to 1
+        requestAnimationFrame(() => {
+          // Now we can safely remove the nextBg layer
+          setNextBg("");
+
+          // Re-enable transitions for the next change
+          requestAnimationFrame(() => {
+            setEnableTransition(true);
+          });
+        });
+      });
+    }, 500); // Match this with your transition duration
+  };
+
   const avatar =
     character === 'jinx'
       ? 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg'
@@ -84,12 +156,33 @@ export default function ChatWindow({ character }: Props) {
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {/* Background Image */}
+      {/* Current Background Image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500"
+        className={`absolute inset-0 bg-cover bg-center bg-no-repeat ${
+          enableTransition ? "transition-opacity duration-500" : ""
+        }`}
         style={{
-          backgroundImage: `url('${backgroundImage}')`,
+          backgroundImage: `url('${currentBg}')`,
+          opacity: isTransitioning ? 0 : 1,
         }}
+      />
+
+      {/* Next Background Image (for transition) */}
+      {nextBg && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
+          style={{
+            backgroundImage: `url('${nextBg}')`,
+            opacity: isTransitioning ? 1 : 0,
+          }}
+        />
+      )}
+
+      {/* Clickable area for background change - Right side white space (temporary mock event) */}
+      <div
+        className="absolute top-0 right-0 h-full w-1/3 cursor-pointer z-10"
+        onClick={changeBackground}
+        title="Click to change background (temporary)"
       />
 
       {/* Voice Call Button */}
