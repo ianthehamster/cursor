@@ -21,7 +21,7 @@ export default function SettingsPage() {
   // console.log('html.classList', document.documentElement.classList);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 p-6 space-y-8">
+    <div className="min-h-screen bg-white text-gray-800 dark:bg-zinc-900 dark:text-zinc-100 p-6 space-y-8 transition-colors">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Settings</h1>
         <button
@@ -47,12 +47,12 @@ export default function SettingsPage() {
             disabled
             className="border p-2 rounded bg-gray-100"
           />
-          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm w-max">
+          <button className="bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-4 py-2 rounded text-sm w-max">
             Log Out
           </button>
         </div>
       </section>
-      <div className="p-4 bg-gray-100 dark:bg-gray-800 text-black dark:text-white">
+      <div className="p-4 bg-gray-100 dark:bg-zinc-800 text-black dark:text-white">
         Testing dark mode colors!
       </div>
 
@@ -65,7 +65,7 @@ export default function SettingsPage() {
             <select
               value={aiCharacter}
               onChange={(e) => setAiCharacter(e.target.value as any)}
-              className="w-full border p-2 rounded"
+              className="w-full border p-2 rounded bg-white dark:bg-zinc-800 dark:border-zinc-700"
             >
               <option value="jinx">Jinx</option>
               <option value="mf">Miss Fortune</option>
@@ -76,7 +76,7 @@ export default function SettingsPage() {
             <input
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full border p-2 rounded"
+              className="w-full border p-2 rounded bg-white dark:bg-zinc-800 dark:border-zinc-700"
             />
           </div>
           <div>
@@ -106,7 +106,7 @@ export default function SettingsPage() {
             <select
               value={humor}
               onChange={(e) => setHumor(e.target.value)}
-              className="w-full border p-2 rounded"
+              className="w-full border p-2 rounded bg-white dark:bg-zinc-800 dark:border-zinc-700"
             >
               <option>Flirty</option>
               <option>Goofy</option>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
             <select
               value={voice}
               onChange={(e) => setVoice(e.target.value)}
-              className="w-full border p-2 rounded"
+              className="w-full border p-2 rounded bg-white dark:bg-zinc-800 dark:border-zinc-700"
             >
               <option>Soft Jinx</option>
               <option>Miss Fortune Classic</option>
@@ -140,10 +140,10 @@ export default function SettingsPage() {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded text-sm w-max">
+          <button className="bg-gray-200 hover:bg-gray-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 px-4 py-2 rounded text-sm w-max">
             View Memories
           </button>
-          <button className="bg-red-100 hover:bg-red-200 text-red-600 px-4 py-2 rounded text-sm w-max">
+          <button className="bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-600 px-4 py-2 rounded text-sm w-max">
             Clear Memory (⚠️)
           </button>
         </div>
@@ -162,14 +162,14 @@ export default function SettingsPage() {
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🕒 Chat History</h2>
         <ul className="space-y-1 text-sm">
-          <li className="flex justify-between items-center border px-3 py-2 rounded">
+          <li className="flex justify-between items-center border border-gray-200 dark:border-zinc-700 px-3 py-2 rounded">
             <span>07 Oct 2025 – Lonely night</span>
             <div className="flex gap-2">
               <button className="text-blue-600 hover:underline">Open</button>
               <button className="text-red-500 hover:underline">🗑</button>
             </div>
           </li>
-          <li className="flex justify-between items-center border px-3 py-2 rounded">
+          <li className="flex justify-between items-center border border-gray-200 dark:border-zinc-700 px-3 py-2 rounded">
             <span>04 Oct 2025 – Pillow Talk</span>
             <div className="flex gap-2">
               <button className="text-blue-600 hover:underline">Open</button>
