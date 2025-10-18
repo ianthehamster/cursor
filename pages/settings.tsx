@@ -1,6 +1,7 @@
 // /pages/settings.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -13,7 +14,11 @@ export default function SettingsPage() {
   const [humor, setHumor] = useState('Flirty');
   const [voice, setVoice] = useState('Soft Jinx');
   const [memoryEnabled, setMemoryEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+
+  const { darkMode, toggleDarkMode } = useTheme();
+
+  // console.log('darkMode?', darkMode);
+  // console.log('html.classList', document.documentElement.classList);
 
   return (
     <div className="min-h-screen bg-white text-gray-800 p-6 space-y-8">
@@ -47,6 +52,9 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
+      <div className="p-4 bg-gray-100 dark:bg-gray-800 text-black dark:text-white">
+        Testing dark mode colors!
+      </div>
 
       {/* Personalization */}
       <section className="space-y-2">
@@ -146,11 +154,7 @@ export default function SettingsPage() {
         <h2 className="text-lg font-semibold">🎨 Appearance</h2>
         <div className="flex items-center justify-between">
           <span>Dark Mode</span>
-          <input
-            type="checkbox"
-            checked={darkMode}
-            onChange={() => setDarkMode((p) => !p)}
-          />
+          <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
         </div>
       </section>
 
