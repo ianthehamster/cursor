@@ -4,6 +4,7 @@ import axios from 'axios';
 import { PlayCircle, PauseCircle, UserCircle } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { bouncy } from 'ldrs';
+import VoiceCallButton from './VoiceCallButton';
 
 bouncy.register();
 interface Props {
@@ -164,6 +165,10 @@ export default function ChatWindow({ character }: Props) {
         )}
 
         <div ref={messagesEndRef} />
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-2 border-t">
+        <VoiceCallButton character={character} />
       </div>
 
       {/* Input bar */}
