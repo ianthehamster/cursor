@@ -44,3 +44,6 @@ next-env.d.ts
 # ignore temporary media recordings
 tmp/
 *.webm
+
+# ignore transcripts
+transcripts/
