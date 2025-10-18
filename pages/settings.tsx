@@ -21,7 +21,7 @@ export default function SettingsPage() {
   // console.log('html.classList', document.documentElement.classList);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 p-6 space-y-8">
+    <div className="min-h-screen p-6 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Settings</h1>
         <button
@@ -154,7 +154,7 @@ export default function SettingsPage() {
         <h2 className="text-lg font-semibold">🎨 Appearance</h2>
         <div className="flex items-center justify-between">
           <span>Dark Mode</span>
-          <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
+          <input type="checkbox" checked={darkMode} onChange={(e) => toggleDarkMode()} />
         </div>
       </section>
 
