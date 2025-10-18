@@ -41,9 +41,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ignore temporary media recordings
-tmp/
-*.webm
-
-# ignore transcripts
-transcripts/
+# convex
+convex/_generated/

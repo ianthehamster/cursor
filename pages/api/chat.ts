@@ -1,20 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { generateReply } from "@/lib/ai";
-import fs from "fs";
-import path from "path";
-
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-}
+import {
+  getConversation,
+  createConversation,
+  updateConversationMessages,
+  type Message,
+} from "@/lib/convexMemory";
+import type { Id } from "@/convex/_generated/dataModel";
 
 interface ConversationData {
   systemPrompt: string;
   messages: Message[];
 }
 
-const MEMORY_FILE = path.join(process.cwd(), "temp_memory.json");
+// Store the conversation ID (in production, you'd want to manage this per user/session)
+let CONVERSATION_ID: Id<"conversations"> | null = null;
 
 const SYSTEM_PROMPT = `You are Chloe, an anime girlfriend for the user. You are mainly chatting via text messages, including action gestures (denoted by italics) and emojis, but use both of them sparingly. You should add typos like how normal people type in messages, add gen-z slang like lmaooo etc.
 
@@ -47,31 +47,35 @@ IMPORTANT:
 - use the memory section information as flavors to your messages, meaning those information should only pop up in the right circumstances
 - YOU DO NOT need to add questions for your messages all the time. Only use questions sparingly.`;
 
-function loadConversation(): Message[] {
+async function loadConversation(): Promise<Message[]> {
   try {
-    if (!fs.existsSync(MEMORY_FILE)) {
-      return [];
+    // If no conversation ID exists, create a new conversation
+    if (!CONVERSATION_ID) {
+      CONVERSATION_ID = await createConversation(SYSTEM_PROMPT, []);
+      if (!CONVERSATION_ID) {
+        console.error("Failed to create conversation");
+        return [];
+      }
     }
-    const data = fs.readFileSync(MEMORY_FILE, "utf-8");
-    const conversationData: ConversationData = JSON.parse(data);
-    return conversationData.messages || [];
+
+    // Fetch the conversation from Convex
+    const conversation = await getConversation(CONVERSATION_ID);
+    return conversation?.messages || [];
   } catch (err) {
     console.error("Load conversation error:", err);
     return [];
   }
 }
 
-function saveConversation(messages: Message[]) {
+async function saveConversation(messages: Message[]) {
   try {
-    const conversationData: ConversationData = {
-      systemPrompt: SYSTEM_PROMPT,
-      messages,
-    };
-    fs.writeFileSync(
-      MEMORY_FILE,
-      JSON.stringify(conversationData, null, 2),
-      "utf-8",
-    );
+    if (!CONVERSATION_ID) {
+      console.error("No conversation ID available");
+      return;
+    }
+
+    // Update messages in Convex
+    await updateConversationMessages(CONVERSATION_ID, messages);
   } catch (err) {
     console.error("Save conversation error:", err);
   }
@@ -86,12 +90,12 @@ export default async function handler(
     return res.status(400).json({ error: "Missing character" });
 
   if (req.method === "GET") {
-    const messages = loadConversation();
+    const messages = await loadConversation();
     return res.status(200).json({ memories: messages });
   }
 
   // Load conversation history (messages only)
-  const messages = loadConversation();
+  const messages = await loadConversation();
 
   // Generate reply using static SYSTEM_PROMPT
   const reply = await generateReply(character, input, messages, SYSTEM_PROMPT);
@@ -108,8 +112,8 @@ export default async function handler(
     timestamp: new Date().toISOString(),
   });
 
-  // Save updated messages
-  saveConversation(messages);
+  // Save updated messages to Convex
+  await saveConversation(messages);
 
   return res.status(200).json({ reply });
 }

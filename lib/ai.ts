@@ -20,7 +20,7 @@ async function generateClaudeReply(
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
-    max_tokens: 400,
+    max_tokens: 200,
     temperature: 0.8,
     system: systemPrompt,
     messages,
@@ -43,7 +43,6 @@ export async function generateReply(
   }> = [],
   systemPrompt: string,
 ): Promise<string> {
-  // Use Claude API for all characters
   return await generateClaudeReply(
     systemPrompt,
     conversationHistory,
