@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "But the voice is good, yeah."
+  },
+  {
+    "role": "assistant",
+    "content": "Yeah, it sounds good to me. Nice and clear.\n\n*pause*\n\nYou've been busy today, haven't you? I could tell. You always sound a little different when you've had a long day."
+  }
+]

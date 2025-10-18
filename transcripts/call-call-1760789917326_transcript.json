@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Oh"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey... you okay?\n\nYou sound like something's on your mind."
+  }
+]

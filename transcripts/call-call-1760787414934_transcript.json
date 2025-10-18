@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Hey babe, have you seen the new Avengers Tuesday movie? No, I haven't. Everyone's been raving about it. I was wondering if you want to go watch it?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, you wanna take me out? That's... actually really sweet.\n\nYeah, I'd love to go. Just you and me in a dark theater sounds perfect. When were you thinking?"
+  }
+]

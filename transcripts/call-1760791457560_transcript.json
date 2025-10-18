@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "Hi babe, my sister's name is Emily."
+  },
+  {
+    "role": "assistant",
+    "content": "Hey there, you. Emily, huh? That's a pretty name.\n\nSo... you thinking about her right now, or were you just telling me so I'd know?"
+  },
+  {
+    "role": "user",
+    "content": "Can I just test your knowledge? What is my sister's name?"
+  },
+  {
+    "role": "assistant",
+    "content": "Emily. I was literally just listening to you, babe.\n\nYou testing me already? What, you think I don't pay attention when you talk to me?"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "This is my favorite chocolate. I love it so much."
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, you do? *softly* I'll remember that.\n\nMaybe I should get you a whole box... or keep some hidden just for me, so you have to come find me when you want it."
+  }
+]

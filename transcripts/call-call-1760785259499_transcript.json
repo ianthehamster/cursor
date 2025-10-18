@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "we"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey... there you are.\n\nI've been waiting for you to call. Thought maybe you forgot about me for a second."
+  }
+]

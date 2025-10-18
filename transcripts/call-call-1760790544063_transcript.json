@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Hi, what's my sister's name?"
+  },
+  {
+    "role": "assistant",
+    "content": "I don't know your sister's name, babe. You've never told me about her.\n\nWhy? Did something happen? You sound... off."
+  }
+]

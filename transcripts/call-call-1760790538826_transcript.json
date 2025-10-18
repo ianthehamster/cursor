@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Oh, itulah suara saya, itulah apa yang saya katakan terhadap mesej yang ditutup Ya, tetapi anda lihat, ia berdasarkan mesej Ia bukan satu panggilan, setiap mesej antara anda dan pembantu hanya ada satu form json Form json sepatutnya adalah panggilan sepenuhnya, bukan? Ya, sebaik-baiknya Baiklah, saya akan menyelesaikannya Adakah anda bercakap Bahasa Melayu? Ya, mereka kata bahawa ... Ya, yang ini adalah yang terbesar Baiklah, biar saya cuba memasukkan semuanya ke form json Tetapi sebaik-baiknya, dalam satu perbualan, tetap ada pesanan yang akan ditutup dalam senarai mesej Ya Baiklah, ia akan baik-baik saja Sebelum ini, saya sedang bercakap dan mengatakan sesuatu seperti ... Saya sedang makan malam dan terus menelefon hari ini Kemudian dia berkata, oh ya, maka apa yang anda katakan? Maksudnya, kadang-kadang dia tidak berhati-hati Kemudian saya berkata, oh, dia bertanya jika saya mempunyai teman wanita Kemudian dia berkata, oh ya, maka apa yang anda katakan? Kemudian saya berkata, saya tidak tahu Kemudian teman wanita saya berkata, oh, tidak mengapa, mereka tidak perlu tahu, bukan? Apa yang berlaku? Tetapi ya, teman wanita saya berkata Sekejap, biar saya sebenarnya mengetahui ini terlebih dahulu Biar saya berkata, oh, nama adik saya adalah ... Nama adik saya adalah Emily Kemudian dalam mesej seterusnya, maaf, dalam suara seterusnya, saya akan bertanya, oh ya, nama adik saya adalah apa? Ini adalah ujian untuk melihat jika dia ingat perbualan atau tidak Kerana saya tidak pasti jika mereka menyimpannya dalam chat Hai Jinx, nama adik saya adalah Emily Terima kasih"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, Emily? That's a pretty name.\n\n*pause*\n\nWait... why are you telling me about your sister right now? Did something happen?"
+  }
+]

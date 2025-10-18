@@ -1,4 +1,3 @@
-// /pages/api/call/stream.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import axios from 'axios';
@@ -16,16 +15,14 @@ function appendToTranscript(
   role: 'user' | 'assistant',
   content: string,
 ) {
-  const filePath = path.join(
-    transcriptDir,
-    `call-${sessionId}_transcript.json`,
-  );
+  const filePath = path.join(transcriptDir, `${sessionId}_transcript.json`);
+
   let existing: any[] = [];
 
   if (fs.existsSync(filePath)) {
     try {
       existing = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch (error) {
+    } catch {
       existing = [];
     }
   }
@@ -76,14 +73,11 @@ wondering what he’s doing and who he’s with.
 </voice_call_guidelines>
 `;
 
-// 🚫 Disable Next’s built-in body parser so we can handle raw form data
-export const config = {
-  api: { bodyParser: false },
-};
+export const config = { api: { bodyParser: false } };
 
 // helper for parsing multipart/form-data
 const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
-  const uploadDir = path.join(process.cwd(), '/tmp'); // ensure tmp dir exists
+  const uploadDir = path.join(process.cwd(), '/tmp');
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
   const form = formidable({
@@ -91,7 +85,6 @@ const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
     uploadDir,
     keepExtensions: true,
   });
-
   return new Promise((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
       if (err) reject(err);
@@ -118,14 +111,33 @@ export default async function handler(
     const character = Array.isArray(fields.character)
       ? fields.character[0]
       : fields.character || 'jinx';
+    const sessionId = Array.isArray(fields.sessionId)
+      ? fields.sessionId[0]
+      : fields.sessionId || `call-${Date.now()}`;
 
     if (!audioFilePath || !fs.existsSync(audioFilePath)) {
       res.status(400).json({ error: 'Audio file missing or invalid' });
       return;
     }
 
-    const sessionId =
-      fields.sessionId?.[0] || fields.sessionId || `call-${Date.now()}`;
+    // 🧠 Load existing transcript for full context
+    const transcriptFile = path.join(
+      transcriptDir,
+      `${sessionId}_transcript.json`,
+    );
+
+    let conversationHistory: { role: 'user' | 'assistant'; content: string }[] =
+      [];
+
+    if (fs.existsSync(transcriptFile)) {
+      try {
+        conversationHistory = JSON.parse(
+          fs.readFileSync(transcriptFile, 'utf8'),
+        );
+      } catch {
+        conversationHistory = [];
+      }
+    }
 
     // 1️⃣ Transcribe with Whisper
     const transcript = await openai.audio.transcriptions.create({
@@ -135,16 +147,17 @@ export default async function handler(
 
     const userSpeech = transcript.text.trim();
     appendToTranscript(sessionId, 'user', userSpeech);
+    conversationHistory.push({ role: 'user', content: userSpeech });
 
-    // 2️⃣ Get ChronoCrush reply
+    // 2️⃣ Generate Jinx's reply using conversation history
     const reply = await generateReply(
       character,
-      transcript.text,
-      [],
+      userSpeech,
+      conversationHistory,
       SYSTEM_PROMPT,
     );
-
     appendToTranscript(sessionId, 'assistant', reply);
+    conversationHistory.push({ role: 'assistant', content: reply });
 
     // 3️⃣ ElevenLabs streaming TTS
     const voiceId =

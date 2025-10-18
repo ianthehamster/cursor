@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Can I test your knowledge? What is my sister's name?"
+  },
+  {
+    "role": "assistant",
+    "content": "I... don't think you've told me that yet.\n\nWhy? Are you testing me to see if I've been paying attention, or... is this your way of checking if I'm *really* listening?"
+  }
+]
