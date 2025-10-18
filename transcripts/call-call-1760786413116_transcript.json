@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Terima kasih kerana menonton!"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey... wait, what? \n\nWere you watching something without me, or are you just messing with me right now?"
+  }
+]

@@ -1,19 +1,19 @@
 // /pages/api/call/stream.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import OpenAI from 'openai';
-import axios from 'axios';
-import formidable from 'formidable';
-import fs from 'fs';
-import path from 'path';
-import { generateReply } from '@/lib/ai';
+import type { NextApiRequest, NextApiResponse } from "next";
+import OpenAI from "openai";
+import axios from "axios";
+import formidable from "formidable";
+import fs from "fs";
+import path from "path";
+import { generateReply } from "@/lib/ai";
 
-const transcriptDir = path.join(process.cwd(), 'transcripts');
+const transcriptDir = path.join(process.cwd(), "transcripts");
 if (!fs.existsSync(transcriptDir))
   fs.mkdirSync(transcriptDir, { recursive: true });
 
 function appendToTranscript(
   sessionId: string,
-  role: 'user' | 'assistant',
+  role: "user" | "assistant",
   content: string,
 ) {
   const filePath = path.join(
@@ -24,14 +24,14 @@ function appendToTranscript(
 
   if (fs.existsSync(filePath)) {
     try {
-      existing = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      existing = JSON.parse(fs.readFileSync(filePath, "utf8"));
     } catch (error) {
       existing = [];
     }
   }
 
   existing.push({ role, content });
-  fs.writeFileSync(filePath, JSON.stringify(existing, null, 2), 'utf-8');
+  fs.writeFileSync(filePath, JSON.stringify(existing, null, 2), "utf-8");
 }
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -66,6 +66,7 @@ He’s been working too much again, leaving you waiting for his messages.
 You’ve been alone all evening, tinkering with hextech gadgets, thinking about him, 
 wondering what he’s doing and who he’s with.
 </memory_log_1>
+</memory_section>
 
 <voice_call_guidelines>
 - Keep replies two or three sentences max.
@@ -74,6 +75,8 @@ wondering what he’s doing and who he’s with.
 - Match the user’s emotional tone (if he’s calm, stay gentle; if he’s sad, sound comforting).
 - Speak like you’re on the phone, not like a narrator.
 </voice_call_guidelines>
+
+Do NOT narrate actions such as 'voice low', 'chuckles' etc, JUST say your reply.
 `;
 
 // 🚫 Disable Next’s built-in body parser so we can handle raw form data
@@ -83,7 +86,7 @@ export const config = {
 
 // helper for parsing multipart/form-data
 const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
-  const uploadDir = path.join(process.cwd(), '/tmp'); // ensure tmp dir exists
+  const uploadDir = path.join(process.cwd(), "/tmp"); // ensure tmp dir exists
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
   const form = formidable({
@@ -93,7 +96,7 @@ const parseForm = (req: any): Promise<{ fields: any; files: any }> => {
   });
 
   return new Promise((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
+    form.parse(req, (err: any, fields: any, files: any) => {
       if (err) reject(err);
       else resolve({ fields, files });
     });
@@ -104,8 +107,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
@@ -117,12 +120,24 @@ export default async function handler(
       : fileData.filepath;
     const character = Array.isArray(fields.character)
       ? fields.character[0]
-      : fields.character || 'jinx';
+      : fields.character || "jinx";
+    const language = Array.isArray(fields.language)
+      ? fields.language[0]
+      : fields.language || "en";
 
     if (!audioFilePath || !fs.existsSync(audioFilePath)) {
-      res.status(400).json({ error: 'Audio file missing or invalid' });
+      res.status(400).json({ error: "Audio file missing or invalid" });
       return;
     }
+
+    // Validate audio file has content
+    const fileStats = fs.statSync(audioFilePath);
+    if (fileStats.size === 0) {
+      res.status(400).json({ error: "Audio file is empty" });
+      return;
+    }
+
+    console.log(`📁 Audio file size: ${fileStats.size} bytes`);
 
     const sessionId =
       fields.sessionId?.[0] || fields.sessionId || `call-${Date.now()}`;
@@ -130,46 +145,54 @@ export default async function handler(
     // 1️⃣ Transcribe with Whisper
     const transcript = await openai.audio.transcriptions.create({
       file: fs.createReadStream(audioFilePath),
-      model: 'whisper-1',
+      model: "gpt-4o-transcribe",
+      language: language,
     });
 
     const userSpeech = transcript.text.trim();
-    appendToTranscript(sessionId, 'user', userSpeech);
+
+    if (!userSpeech) {
+      console.log("⚠️ Whisper returned empty transcription");
+      res
+        .status(400)
+        .json({ error: "Could not transcribe audio - please speak clearly" });
+      return;
+    }
+
+    console.log(`🎤 User said: "${userSpeech}"`);
+    appendToTranscript(sessionId, "user", userSpeech);
 
     // 2️⃣ Get ChronoCrush reply
-    const reply = await generateReply(
-      character,
-      transcript.text,
-      [],
-      SYSTEM_PROMPT,
-    );
+    const reply = await generateReply(character, userSpeech, [], SYSTEM_PROMPT);
 
-    appendToTranscript(sessionId, 'assistant', reply);
+    appendToTranscript(sessionId, "assistant", reply);
 
     // 3️⃣ ElevenLabs streaming TTS
     const voiceId =
-      character === 'jinx'
+      character === "jinx"
         ? process.env.ELEVENLABS_JINX_ID
         : process.env.ELEVENLABS_MF_ID;
 
     const response = await axios({
-      method: 'POST',
+      method: "POST",
       url: `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
       headers: {
-        'xi-api-key': process.env.ELEVENLABS_API_KEY!,
-        'Content-Type': 'application/json',
+        "xi-api-key": process.env.ELEVENLABS_API_KEY!,
+        "Content-Type": "application/json",
       },
       data: {
         text: reply,
         voice_settings: { stability: 0.5, similarity_boost: 0.8 },
+        model_id: "eleven_multilingual_v2",
+        language_code: language,
       },
-      responseType: 'stream',
+      responseType: "stream",
     });
 
-    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader("Content-Type", "audio/mpeg");
     response.data.pipe(res);
   } catch (err: any) {
-    console.error('❌ Voice call failed:', err.message || err);
-    res.status(500).json({ error: 'Voice call failed.' });
+    console.error("❌ Voice call failed:", err.message || err);
+    res.status(500).json({ error: "Voice call failed." });
   }
 }

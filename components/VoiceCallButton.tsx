@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react';
-import { PhoneOff, Mic, MicOff, PhoneCall } from 'lucide-react';
+import React, { useState, useRef } from "react";
+import { PhoneOff, Mic, MicOff, PhoneCall } from "lucide-react";
 
 export default function VoiceCallButton({
   character,
 }: {
-  character: 'jinx' | 'mf';
+  character: "jinx" | "mf";
 }) {
+  const inCallRef = useRef(false);
   const [inCall, setInCall] = useState(false);
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -14,33 +15,45 @@ export default function VoiceCallButton({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const playbackCtxRef = useRef<AudioContext | null>(null);
-  const playbackSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+  const mediaSourceRef = useRef<MediaSource | null>(null);
 
   const startCall = async () => {
     setInCall(true);
+    inCallRef.current = true;
+    await playTone('start');
+
     await startRecording();
   };
 
-  const endCall = () => {
+  const endCall = async () => {
+    inCallRef.current = false;
     stopRecording();
     cleanupAudioContext();
 
-    if (playbackSourceRef.current) {
+    // Stop any ongoing playback immediately
+    if (audioElementRef.current) {
       try {
-        playbackSourceRef.current.stop();
+        audioElementRef.current.pause();
+        audioElementRef.current.src = '';
+        audioElementRef.current.load();
       } catch {}
-      playbackSourceRef.current = null;
+      audioElementRef.current = null;
     }
 
-    if (playbackCtxRef.current) {
+    // Cleanup MediaSource
+    if (mediaSourceRef.current) {
       try {
-        playbackCtxRef.current.close();
+        if (mediaSourceRef.current.readyState === 'open') {
+          mediaSourceRef.current.endOfStream();
+        }
       } catch {}
-      playbackCtxRef.current = null;
+      mediaSourceRef.current = null;
     }
 
-    setInCall(false);
+    // Play hang-up tone before closing overlay
+    await playTone('end');
+    setTimeout(() => setInCall(false), 300);
   };
 
   const startRecording = async () => {
@@ -48,7 +61,7 @@ export default function VoiceCallButton({
     streamRef.current = stream;
 
     const recorder = new MediaRecorder(stream, {
-      mimeType: 'audio/webm; codecs=opus',
+      mimeType: 'audio/webm;codecs=opus',
     });
     const chunks: BlobPart[] = [];
 
@@ -57,10 +70,11 @@ export default function VoiceCallButton({
       cleanupAudioContext();
       setRecording(false);
 
-      const audioBlob = new Blob(chunks, { type: 'audio/webm; codecs=opus' });
+      const audioBlob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
       const formData = new FormData();
       formData.append('audio', audioBlob, 'speech.webm');
       formData.append('character', character);
+      formData.append('language', 'en');
 
       const response = await fetch('/api/call/stream', {
         method: 'POST',
@@ -68,34 +82,63 @@ export default function VoiceCallButton({
       });
       if (!response.body) return;
 
-      const audioCtx = new AudioContext();
-      const reader = response.body.getReader();
-      const streamBuffer: Uint8Array[] = [];
+      // Progressive streaming playback
+      const mediaSource = new MediaSource();
+      const audio = new Audio();
+      audio.src = URL.createObjectURL(mediaSource);
 
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        if (value) streamBuffer.push(value);
-      }
+      // Store refs for cleanup
+      audioElementRef.current = audio;
+      mediaSourceRef.current = mediaSource;
 
-      const blob = new Blob(streamBuffer, { type: 'audio/mpeg' });
-      const arrayBuffer = await blob.arrayBuffer();
-      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-      const source = audioCtx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioCtx.destination);
-      playbackCtxRef.current = audioCtx;
-      playbackSourceRef.current = source;
-      source.start();
+      audio.play();
 
-      source.onended = () => {
-        if (inCall) startRecording();
+      mediaSource.addEventListener('sourceopen', async () => {
+        const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+        const reader = response.body!.getReader();
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            if (mediaSource.readyState === 'open') {
+              mediaSource.endOfStream();
+            }
+            break;
+          }
+          // Check if call was ended while streaming
+          if (!inCallRef.current) {
+            reader.cancel();
+            break;
+          }
+          if (value && !sourceBuffer.updating) {
+            await new Promise((resolve) => {
+              sourceBuffer.addEventListener('updateend', resolve, {
+                once: true,
+              });
+              sourceBuffer.appendBuffer(value);
+            });
+          }
+        }
+      });
+
+      // Re-arm mic after playback
+      audio.onended = async () => {
+        if (inCallRef.current) {
+          // Immediately flip to "Listening..." visually
+          setRecording(true);
+
+          // Wait a small beat to avoid mic conflict with the player
+          await new Promise((r) => setTimeout(r, 200));
+
+          // Restart mic
+          startRecording();
+        }
       };
     };
 
+    setRecording(true);
     mediaRecorderRef.current = recorder;
     recorder.start();
-    setRecording(true);
     setupAudioContext(stream, recorder);
   };
 
@@ -120,7 +163,7 @@ export default function VoiceCallButton({
       if (avg < silenceThreshold) {
         if (!silenceTimerRef.current) {
           silenceTimerRef.current = setTimeout(() => {
-            if (recorder.state === 'recording') recorder.stop();
+            if (recorder.state === "recording") recorder.stop();
           }, 1500);
         }
       } else {
@@ -129,7 +172,7 @@ export default function VoiceCallButton({
           silenceTimerRef.current = null;
         }
       }
-      if (recorder.state === 'recording') requestAnimationFrame(checkSilence);
+      if (recorder.state === "recording") requestAnimationFrame(checkSilence);
     };
 
     requestAnimationFrame(checkSilence);
@@ -147,16 +190,36 @@ export default function VoiceCallButton({
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current?.state === 'recording')
+    if (mediaRecorderRef.current?.state === "recording")
       mediaRecorderRef.current.stop();
     cleanupAudioContext();
     setRecording(false);
   };
 
+  const playTone = async (type: 'start' | 'end') => {
+    const audio = new Audio();
+
+    if (type === 'start') {
+      audio.src = '/sounds/call_start.mp3'; // ringing or connecting sound
+    } else {
+      audio.src = '/sounds/call_end.mp3'; // hang-up sound
+    }
+
+    try {
+      await audio.play();
+    } catch (err) {
+      console.warn('Autoplay blocked, waiting for user interaction', err);
+    }
+
+    return new Promise<void>((resolve) => {
+      audio.addEventListener('ended', () => resolve(), { once: true });
+    });
+  };
+
   const avatar =
-    character === 'jinx'
-      ? 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg'
-      : 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg';
+    character === "jinx"
+      ? "https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg"
+      : "https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg";
 
   return (
     <>
@@ -179,10 +242,10 @@ export default function VoiceCallButton({
             alt={character}
           />
           <h2 className="text-xl font-semibold mb-1">
-            {character === 'jinx' ? 'Jinx' : 'Miss Fortune'}
+            {character === "jinx" ? "Jinx" : "Miss Fortune"}
           </h2>
           <p className="text-gray-300 text-sm mb-8">
-            {recording ? 'Listening...' : 'Thinking...'}
+            {recording ? "Listening..." : "Thinking..."}
           </p>
 
           <div className="flex gap-8">
@@ -190,14 +253,14 @@ export default function VoiceCallButton({
               onClick={recording ? stopRecording : startRecording}
               className={`p-6 rounded-full transition ${
                 recording
-                  ? 'bg-red-600 animate-pulse'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                  ? "bg-red-600 animate-pulse"
+                  : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
               {recording ? (
-                <MicOff className="w-6 h-6" />
-              ) : (
                 <Mic className="w-6 h-6" />
+              ) : (
+                <MicOff className="w-6 h-6" />
               )}
             </button>
             <button

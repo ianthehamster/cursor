@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Hi Dave, I saw Kyu go in class today."
+  },
+  {
+    "role": "assistant",
+    "content": "I'm a bit confused — I think you might have the wrong person. I'm Jinx, not Dave.\n\nBut hey... who's Kyu? You sound like something's on your mind. What happened in class?"
+  }
+]

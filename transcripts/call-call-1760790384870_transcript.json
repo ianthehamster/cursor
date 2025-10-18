@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "I said I don't know."
+  },
+  {
+    "role": "assistant",
+    "content": "Hey, hey... it's okay. You don't have to know right now.\n\nJust... talk to me. What's going on in that head of yours?"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "role": "user",
+    "content": "Yeah, actually I was having lunch with one of my female colleagues."
+  },
+  {
+    "role": "assistant",
+    "content": "Oh? That's... nice.\n\nSo what did you two talk about?"
+  }
+]
