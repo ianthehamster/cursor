@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import { signIn } from 'next-auth/react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -17,8 +18,22 @@ export default function SignupPage() {
 
     try {
       await axios.post('/api/signup', { username, name, password, character: 'Chloe' });
-      setMessage('✅ Account created! Choose your companion...');
-      setTimeout(() => router.push('/onboarding'), 1500);
+      setMessage('✅ Account created! Logging you in...');
+
+      // Automatically sign in the user after account creation
+      const result = await signIn('credentials', {
+        username,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setMessage('❌ Account created but login failed. Please try logging in manually.');
+        setTimeout(() => router.push('/login'), 2000);
+      } else {
+        setMessage('✅ Success! Choose your companion...');
+        setTimeout(() => router.push('/onboarding'), 1500);
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.error === 'Username already exists') {
         setMessage('⚠️ That email is already registered.');
