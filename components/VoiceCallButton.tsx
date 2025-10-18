@@ -14,6 +14,8 @@ export default function VoiceCallButton({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const playbackCtxRef = useRef<AudioContext | null>(null);
+  const playbackSourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   const startCall = async () => {
     setInCall(true);
@@ -23,6 +25,21 @@ export default function VoiceCallButton({
   const endCall = () => {
     stopRecording();
     cleanupAudioContext();
+
+    if (playbackSourceRef.current) {
+      try {
+        playbackSourceRef.current.stop();
+      } catch {}
+      playbackSourceRef.current = null;
+    }
+
+    if (playbackCtxRef.current) {
+      try {
+        playbackCtxRef.current.close();
+      } catch {}
+      playbackCtxRef.current = null;
+    }
+
     setInCall(false);
   };
 
@@ -67,6 +84,8 @@ export default function VoiceCallButton({
       const source = audioCtx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioCtx.destination);
+      playbackCtxRef.current = audioCtx;
+      playbackSourceRef.current = source;
       source.start();
 
       source.onended = () => {
