@@ -1,6 +1,7 @@
 // /pages/settings.tsx
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -13,10 +14,15 @@ export default function SettingsPage() {
   const [humor, setHumor] = useState('Flirty');
   const [voice, setVoice] = useState('Soft Jinx');
   const [memoryEnabled, setMemoryEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+
+  const { darkMode, toggleDarkMode } = useTheme();
+
+  // console.log('darkMode?', darkMode);
+  // console.log('html.classList', document.documentElement.classList);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 p-6 space-y-8">
+    <div className="min-h-screen p-6 space-y-8">
+      {' '}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Settings</h1>
         <button
@@ -26,7 +32,6 @@ export default function SettingsPage() {
           ← Back to Chat
         </button>
       </div>
-
       {/* Profile */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">👤 Profile</h2>
@@ -47,7 +52,6 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
-
       {/* Personalization */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">💞 AI Girlfriend</h2>
@@ -119,7 +123,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </section>
-
       {/* Memory & Chat */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🧠 Memory & Chat</h2>
@@ -140,7 +143,6 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
-
       {/* Appearance */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🎨 Appearance</h2>
@@ -149,11 +151,10 @@ export default function SettingsPage() {
           <input
             type="checkbox"
             checked={darkMode}
-            onChange={() => setDarkMode((p) => !p)}
+            onChange={(e) => toggleDarkMode()}
           />
         </div>
       </section>
-
       {/* Chat History */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">🕒 Chat History</h2>
