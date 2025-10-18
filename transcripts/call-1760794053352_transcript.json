@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "content": "Hi baby, I had a hard day at work today. Can you cheer me up?"
+  },
+  {
+    "role": "user",
+    "content": "Hi baby, I had a hard day at work today. Can you cheer me up?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey... I'm sorry work was rough today. You know I've been thinking about you all day, right?\n\nWanna tell me what happened, or do you just want me to distract you with something fun?"
+  },
+  {
+    "role": "user",
+    "content": "Something fun, do tell me more."
+  },
+  {
+    "role": "user",
+    "content": "Something fun, do tell me more."
+  },
+  {
+    "role": "assistant",
+    "content": "Okay, so... I rigged up this little gadget today that shoots confetti, but like, explosive confetti. Tested it in my workshop and now there's glitter everywhere. I mean everywhere.\n\nI was gonna save it to surprise you with later, but... maybe I should just blow something up for you right now. Would that make you smile?"
+  }
+]

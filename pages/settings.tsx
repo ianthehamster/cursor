@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useSession } from 'next-auth/react';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   const [username, setUsername] = useState('Ian');
   const [nickname, setNickname] = useState('Jinxy');
@@ -16,6 +18,12 @@ export default function SettingsPage() {
   const [memoryEnabled, setMemoryEnabled] = useState(true);
 
   const { darkMode, toggleDarkMode } = useTheme();
+  // wait or block unauthorized access
+  if (status === 'loading') return <p>Loading...</p>;
+  if (!session) {
+    router.push('/login');
+    return null;
+  }
 
   // console.log('darkMode?', darkMode);
   // console.log('html.classList', document.documentElement.classList);

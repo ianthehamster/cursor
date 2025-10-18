@@ -8,7 +8,7 @@ export default defineSchema({
         role: v.union(v.literal('user'), v.literal('assistant')),
         content: v.string(),
         timestamp: v.string(),
-      })
+      }),
     ),
     systemPrompt: v.string(),
   }),
@@ -18,4 +18,15 @@ export default defineSchema({
     conversation_id: v.id('conversations'),
     date_range: v.string(),
   }).index('by_conversation', ['conversation_id']),
+
+  // users: defineTable({
+  //   username: 'string',
+  //   password: 'string',
+  //   name: 'string',
+  // }),
+  users: defineTable({
+    username: v.string(),
+    password: v.string(),
+    name: v.string(),
+  }).index('by_username', ['username']),
 });

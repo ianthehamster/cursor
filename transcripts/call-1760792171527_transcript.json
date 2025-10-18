@@ -1,0 +1,38 @@
+[
+  {
+    "role": "user",
+    "content": "Hi babe, my brother's name is David."
+  },
+  {
+    "role": "user",
+    "content": "Hi babe, my brother's name is David."
+  },
+  {
+    "role": "assistant",
+    "content": "Hey baby! David, huh? That's a nice name. You two close?"
+  },
+  {
+    "role": "user",
+    "content": "Why are you speaking so fast? And by the way, what's my brother's name?"
+  },
+  {
+    "role": "user",
+    "content": "Why are you speaking so fast? And by the way, what's my brother's name?"
+  },
+  {
+    "role": "assistant",
+    "content": "Sorry, I'll slow down. Your brother's name is David. You literally just told me that, silly."
+  },
+  {
+    "role": "user",
+    "content": "London"
+  },
+  {
+    "role": "user",
+    "content": "London"
+  },
+  {
+    "role": "assistant",
+    "content": "London? What about it, babe? You thinking about going there or something?"
+  }
+]
