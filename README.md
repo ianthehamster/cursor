@@ -2,7 +2,7 @@
 
 This is our team's project for Cursor Hackathon Singapore Oct 2025.
 
-**HOSTED WEBSITE** https://cursor-eta-three.vercel.app/login
+**HOSTED WEBSITE** [https://cursor-64cyzrvai-teo-yong-sen-projects.vercel.app/signup]
 
 ## Getting Started
 
