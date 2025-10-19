@@ -1,19 +1,21 @@
 # AI Girlfriend
 
-This is our team's project for Cursor Hackathon SG Oct25.
+This is our team's project for Cursor Hackathon Singapore Oct 2025.
+
+**HOSTED WEBSITE** [https://cursor-64cyzrvai-teo-yong-sen-projects.vercel.app/signup]
 
 ## Getting Started
+
+Install the packages.
+
+```bash
+npm install
+```
 
 First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to create your account.
