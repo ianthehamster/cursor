@@ -4,11 +4,11 @@ import type { Id } from '../convex/_generated/dataModel';
 
 // Initialize Convex client for server-side operations
 const convexClient = new ConvexHttpClient(
-  process.env.NEXT_PUBLIC_CONVEX_URL || ''
+  process.env.NEXT_PUBLIC_CONVEX_URL || '',
 );
 
 export interface Message {
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: string;
 }
@@ -17,13 +17,13 @@ export interface Conversation {
   _id: Id<'conversations'>;
   messages: Message[];
   systemPrompt: string;
-  character: 'Chloe' | 'Jinx';
+  character?: 'Chloe' | 'Jinx';
   _creationTime: number;
 }
 
 // Get a conversation by ID
 export async function getConversation(
-  conversationId: Id<'conversations'>
+  conversationId: Id<'conversations'>,
 ): Promise<Conversation | null> {
   try {
     return await convexClient.query(api.conversations.get, {
@@ -39,7 +39,7 @@ export async function getConversation(
 export async function createConversation(
   systemPrompt: string,
   character: 'Chloe' | 'Jinx',
-  messages: Message[] = []
+  messages: Message[] = [],
 ): Promise<Id<'conversations'> | null> {
   try {
     return await convexClient.mutation(api.conversations.create, {
@@ -56,7 +56,7 @@ export async function createConversation(
 // Update conversation messages
 export async function updateConversationMessages(
   conversationId: Id<'conversations'>,
-  messages: Message[]
+  messages: Message[],
 ): Promise<void> {
   try {
     await convexClient.mutation(api.conversations.updateMessages, {
@@ -73,7 +73,7 @@ export async function addMessageToConversation(
   conversationId: Id<'conversations'>,
   role: 'user' | 'assistant',
   content: string,
-  timestamp: string
+  timestamp: string,
 ): Promise<void> {
   try {
     await convexClient.mutation(api.conversations.addMessage, {
@@ -90,7 +90,7 @@ export async function addMessageToConversation(
 // Update system prompt
 export async function updateSystemPrompt(
   conversationId: Id<'conversations'>,
-  systemPrompt: string
+  systemPrompt: string,
 ): Promise<void> {
   try {
     await convexClient.mutation(api.conversations.updateSystemPrompt, {
@@ -114,7 +114,7 @@ export async function listConversations(): Promise<Conversation[]> {
 
 // Delete a conversation
 export async function deleteConversation(
-  conversationId: Id<'conversations'>
+  conversationId: Id<'conversations'>,
 ): Promise<void> {
   try {
     await convexClient.mutation(api.conversations.deleteConversation, {

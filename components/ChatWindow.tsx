@@ -1,11 +1,11 @@
 // /components/ChatWindow.tsx (with typing dots only, no animatingText)
-import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
-import { PlayCircle, PauseCircle, UserCircle, X } from "lucide-react";
-import { useRouter } from "next/router";
-import { bouncy } from "ldrs";
-import Image from "next/image";
-import VoiceCallButton from "./VoiceCallButton";
+import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
+import { PlayCircle, PauseCircle, UserCircle, X } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { bouncy } from 'ldrs';
+import Image from 'next/image';
+import VoiceCallButton from './VoiceCallButton';
 
 interface Props {
   character: 'jinx' | 'mf';
@@ -24,8 +24,8 @@ export default function ChatWindow({ character }: Props) {
   // Background transition states
   const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
-  const [currentBg, setCurrentBg] = useState("");
-  const [nextBg, setNextBg] = useState("");
+  const [currentBg, setCurrentBg] = useState('');
+  const [nextBg, setNextBg] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [enableTransition, setEnableTransition] = useState(true);
   const [currentScenario, setCurrentScenario] = useState<string | null>(null);
@@ -49,12 +49,17 @@ export default function ChatWindow({ character }: Props) {
 
         // If no stored scenario, fetch available scenarios and pick one randomly
         if (!scenario) {
-          const scenariosRes = await axios.get(`/api/backgrounds?character=${character}`);
+          const scenariosRes = await axios.get(
+            `/api/backgrounds?character=${character}`,
+          );
           const availableScenarios = scenariosRes.data.scenarios || [];
 
           if (availableScenarios.length > 0) {
             // Randomly select a scenario
-            const selectedScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
+            const selectedScenario =
+              availableScenarios[
+                Math.floor(Math.random() * availableScenarios.length)
+              ];
             scenario = selectedScenario;
             // Store it for this session
             sessionStorage.setItem(sessionKey, selectedScenario);
@@ -69,16 +74,21 @@ export default function ChatWindow({ character }: Props) {
         setCurrentScenario(scenario);
 
         // Fetch images for the selected scenario
-        const res = await axios.get(`/api/backgrounds?character=${character}&scenario=${scenario}`);
+        const res = await axios.get(
+          `/api/backgrounds?character=${character}&scenario=${scenario}`,
+        );
         const images = res.data.images || [];
         setBackgroundImages(images);
         if (images.length > 0) {
           setCurrentBg(images[0]);
         }
       } catch (error) {
-        console.error("Failed to fetch background images:", error);
+        console.error('Failed to fetch background images:', error);
         // Fallback to a default image if API fails
-        const fallback = character === 'jinx' ? '/jinx/jinx punk rock 1.png' : '/chloe/chloe barista 2.png';
+        const fallback =
+          character === 'jinx'
+            ? '/jinx/jinx punk rock 1.png'
+            : '/chloe/chloe barista 2.png';
         setBackgroundImages([fallback]);
         setCurrentBg(fallback);
       }
@@ -166,7 +176,7 @@ export default function ChatWindow({ character }: Props) {
         // Wait one more frame for the opacity to snap to 1
         requestAnimationFrame(() => {
           // Now we can safely remove the nextBg layer
-          setNextBg("");
+          setNextBg('');
 
           // Re-enable transitions for the next change
           requestAnimationFrame(() => {
@@ -178,16 +188,14 @@ export default function ChatWindow({ character }: Props) {
   };
 
   const avatar =
-    character === 'jinx'
-      ? '/jinx portrait.jpg'
-      : '/chloe portrait.jpg';
+    character === 'jinx' ? '/jinx portrait.jpg' : '/chloe portrait.jpg';
 
   return (
     <div className="relative h-full w-full overflow-hidden">
       {/* Current Background Image */}
       <div
         className={`absolute inset-0 bg-cover bg-center bg-no-repeat ${
-          enableTransition ? "transition-opacity duration-500" : ""
+          enableTransition ? 'transition-opacity duration-500' : ''
         }`}
         style={{
           backgroundImage: `url('${currentBg}')`,
@@ -260,7 +268,7 @@ export default function ChatWindow({ character }: Props) {
       {/* Collapsible Chat Section */}
       <div
         className={`absolute bottom-0 left-0 right-0 z-40 bg-white/10 backdrop-blur-md rounded-t-3xl shadow-2xl transition-all duration-300 ease-in-out ${
-          chatExpanded ? "h-[61%]" : "h-16"
+          chatExpanded ? 'h-[61%]' : 'h-16'
         }`}
       >
         {/* Chat Header Bar - Always visible */}
@@ -278,7 +286,7 @@ export default function ChatWindow({ character }: Props) {
               priority
             />
             <span className="font-medium text-gray-800">
-              {character === "jinx" ? "Jinx" : "Chloe"}
+              {character === 'jinx' ? 'Jinx' : 'Chloe'}
             </span>
           </div>
           <button className="text-gray-600">
@@ -298,15 +306,15 @@ export default function ChatWindow({ character }: Props) {
                 <div
                   key={idx}
                   className={`flex ${
-                    msg.role === "user" ? "justify-end" : "justify-start"
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
                   <div
                     className={`flex items-end gap-2 max-w-[75%] ${
-                      msg.role === "user" ? "flex-row-reverse" : ""
+                      msg.role === 'user' ? 'flex-row-reverse' : ''
                     }`}
                   >
-                    {msg.role === "bot" && (
+                    {msg.role === 'bot' && (
                       <Image
                         src={avatar}
                         width={24}
@@ -318,14 +326,14 @@ export default function ChatWindow({ character }: Props) {
                     <div
                       className={`rounded-2xl px-4 py-2 text-sm leading-relaxed shadow
                       ${
-                        msg.role === "user"
-                          ? "bg-pink-500 text-white rounded-br-none"
-                          : "bg-gray-100 text-gray-900 rounded-bl-none"
+                        msg.role === 'user'
+                          ? 'bg-pink-500 text-white rounded-br-none'
+                          : 'bg-gray-100 text-gray-900 rounded-bl-none'
                       }`}
                     >
                       {msg.content}
                     </div>
-                    {msg.role === "bot" && msg.audioUrl && (
+                    {msg.role === 'bot' && msg.audioUrl && (
                       <button
                         onClick={() => playAudio(msg.audioUrl!, idx)}
                         className="text-pink-500"
@@ -369,13 +377,13 @@ export default function ChatWindow({ character }: Props) {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       sendMessage();
                     }
                   }}
                   placeholder={`Talk to ${
-                    character === "jinx" ? "Jinx" : "Chloe"
+                    character === 'jinx' ? 'Jinx' : 'Chloe'
                   }...`}
                   className="flex-1 bg-gray-100 text-black border border-gray-300 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-pink-500"
                 />
