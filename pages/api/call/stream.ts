@@ -228,6 +228,8 @@ export default async function handler(
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error('❌ Voice call failed:', errorMessage);
-    res.status(500).json({ error: 'Voice call failed.' });
+    res
+      .status(500)
+      .json({ error: 'Voice call failed.', details: errorMessage });
   }
 }
