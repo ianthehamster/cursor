@@ -6,9 +6,11 @@ import fs from 'fs';
 import path from 'path';
 import { generateReply } from '@/lib/ai';
 
-const transcriptDir = path.join(process.cwd(), 'transcripts');
-if (!fs.existsSync(transcriptDir))
+// ✅ Use writable directory in Vercel
+const transcriptDir = '/tmp/transcripts';
+if (!fs.existsSync(transcriptDir)) {
   fs.mkdirSync(transcriptDir, { recursive: true });
+}
 
 function appendToTranscript(
   sessionId: string,
