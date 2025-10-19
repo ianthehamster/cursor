@@ -79,7 +79,9 @@ Do NOT narrate actions such as 'voice low', 'chuckles' etc, JUST say your reply.
 export const config = { api: { bodyParser: false } };
 
 // helper for parsing multipart/form-data
-const parseForm = (req: NextApiRequest): Promise<{ fields: Fields; files: Files }> => {
+const parseForm = (
+  req: NextApiRequest,
+): Promise<{ fields: Fields; files: Files }> => {
   const uploadDir = path.join(process.cwd(), '/tmp');
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -134,6 +136,19 @@ export default async function handler(
     }
 
     console.log(`📁 Audio file size: ${fileStats.size} bytes`);
+
+    // Roughly estimate recording length.
+    const estimatedSeconds = fileStats.size / 6000;
+
+    if (estimatedSeconds < 1.0) {
+      console.log('🛑 Skipping AI reply — audio too short.');
+      // Optionally delete the short temp file
+      try {
+        fs.unlinkSync(audioFilePath);
+      } catch {}
+      res.status(204).end(); // No content, tells client nothing to play
+      return;
+    }
 
     // 🧠 Load existing transcript for full context
     const transcriptFile = path.join(

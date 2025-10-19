@@ -70,7 +70,10 @@ export default function VoiceCallButton({
         method: 'POST',
         body: formData,
       });
-      if (!response.body) return;
+      if (response.status === 204 || !response.body) {
+        console.log('Call ended too soon — skipping reply.');
+        return;
+      }
 
       // ⚡ Progressive streaming playback
       const mediaSource = new MediaSource();
@@ -239,7 +242,7 @@ export default function VoiceCallButton({
 
   const avatar =
     character === 'jinx'
-      ? 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinxLogo.jpg'
+      ? 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/jinx-cursor.jpg'
       : 'https://pub-01f09c37e5784a26a410dffc4b7022ed.r2.dev/images/Sarah_Fortune.jpg';
 
   return (
