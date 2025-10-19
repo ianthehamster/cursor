@@ -21,6 +21,12 @@ export default function ChatWindow({ character }: Props) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
 
+  // 🐛 Debug: Log character prop
+  useEffect(() => {
+    console.log('🎭 ChatWindow received character:', character);
+    console.log('🎭 Should show voice button:', character === 'jinx');
+  }, [character]);
+
   // Background transition states
   const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -207,8 +213,9 @@ export default function ChatWindow({ character }: Props) {
       )}
 
       {/* Clickable area for background change - Right side white space (temporary mock event) */}
+      {/* Reserve bottom area for voice call button */}
       <div
-        className="absolute top-0 right-0 h-full w-1/3 cursor-pointer z-10"
+        className="absolute top-0 right-0 h-[calc(100%-12rem)] w-1/3 cursor-pointer z-10"
         onClick={changeBackground}
         title="Click to change background (temporary)"
       />

@@ -244,7 +244,7 @@ export default function VoiceCallButton({
   return (
     <>
       {!inCall && (
-        <div className="absolute bottom-20 right-6">
+        <div className="absolute bottom-20 right-6 z-30">
           <button
             onClick={startCall}
             className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-full flex items-center gap-2 shadow-lg"

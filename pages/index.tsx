@@ -30,8 +30,17 @@ export default function Home() {
         try {
           const res = await axios.get(`/api/user?username=${session.user.username}`);
           const userCharacter = res.data.character;
+
+          // 🐛 Debug logging
+          console.log('🔍 Raw character from DB:', userCharacter);
+          console.log('🔍 Character type:', typeof userCharacter);
+
           // Map 'Chloe' -> 'mf', 'Jinx' -> 'jinx'
-          const mappedChar = userCharacter === 'Jinx' ? 'jinx' : 'mf';
+          // Make comparison case-insensitive and trim whitespace
+          const normalizedChar = (userCharacter || '').toString().trim().toLowerCase();
+          const mappedChar = normalizedChar === 'jinx' ? 'jinx' : 'mf';
+
+          console.log('✅ Mapped character:', mappedChar);
           setCharacter(mappedChar);
         } catch (error) {
           console.error('Failed to fetch user character:', error);
