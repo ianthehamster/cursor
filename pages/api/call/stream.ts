@@ -82,7 +82,7 @@ export const config = { api: { bodyParser: false } };
 const parseForm = (
   req: NextApiRequest,
 ): Promise<{ fields: Fields; files: Files }> => {
-  const uploadDir = path.join(process.cwd(), '/tmp');
+  const uploadDir = '/tmp'; // ✅ works on Vercel
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
   const form = formidable({
