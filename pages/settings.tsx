@@ -1,5 +1,5 @@
 // /pages/settings.tsx
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { signOut, useSession } from 'next-auth/react';

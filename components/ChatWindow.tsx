@@ -7,6 +7,13 @@ import { bouncy } from 'ldrs';
 import Image from 'next/image';
 import VoiceCallButton from './VoiceCallButton';
 
+// 💬 type for chat messages
+type Message = {
+  role: 'user' | 'bot';
+  content: string;
+  audioUrl?: string;
+};
+
 interface Props {
   character: 'jinx' | 'mf';
 }
@@ -20,6 +27,22 @@ export default function ChatWindow({ character }: Props) {
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
+
+  // Save messages (now with user key)
+  const saveMessages = (msgs: typeof messages) => {
+    try {
+      const username =
+        typeof window !== 'undefined'
+          ? sessionStorage.getItem('current_user') || 'guest'
+          : 'guest';
+      sessionStorage.setItem(
+        `chat_${username}_${character}`,
+        JSON.stringify(msgs),
+      );
+    } catch (err) {
+      console.warn('⚠️ Failed to persist messages:', err);
+    }
+  };
 
   // 🐛 Debug: Log character prop
   useEffect(() => {
@@ -111,27 +134,44 @@ export default function ChatWindow({ character }: Props) {
   const sendMessage = async (): Promise<void> => {
     if (!input.trim()) return;
     const userMsg = input.trim();
-    setMessages((prev) => [...prev, { role: 'user', content: userMsg }]);
+
+    // ✅ user message
+    setMessages((prev) => {
+      const updated: Message[] = [...prev, { role: 'user', content: userMsg }];
+      saveMessages(updated);
+      return updated;
+    });
+
     setInput('');
     setLoading(true);
 
     try {
       const res = await axios.post('/api/chat', { input: userMsg, character });
-      const reply = res.data.reply || '...';
-      const audioUrl = res.data.audioUrl || null;
+      const reply: string = res.data.reply || '...';
+      const audioUrl: string | null = res.data.audioUrl || null;
 
-      setMessages((prev) => [
-        ...prev,
-        { role: 'bot', content: reply, audioUrl },
-      ]);
+      // ✅ bot message
+      setMessages((prev) => {
+        const updated: Message[] = [
+          ...prev,
+          { role: 'bot', content: reply, audioUrl: audioUrl ?? undefined },
+        ];
+        saveMessages(updated);
+        return updated;
+      });
 
       if (audioUrl) playAudio(audioUrl);
     } catch (err) {
       console.error('Chat error:', err);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'bot', content: '⚠️ Failed to fetch reply.' },
-      ]);
+
+      setMessages((prev) => {
+        const updated: Message[] = [
+          ...prev,
+          { role: 'bot', content: '⚠️ Failed to fetch reply.' },
+        ];
+        saveMessages(updated);
+        return updated;
+      });
     } finally {
       setLoading(false);
     }
@@ -192,6 +232,38 @@ export default function ChatWindow({ character }: Props) {
       });
     }, 500); // Match this with your transition duration
   };
+
+  // ✅ Load persisted messages when component mounts
+  useEffect(() => {
+    try {
+      const username =
+        typeof window !== 'undefined'
+          ? sessionStorage.getItem('current_user') || 'guest'
+          : 'guest';
+      const saved = sessionStorage.getItem(`chat_${username}_${character}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setMessages(parsed);
+          console.log(`💾 Loaded chat_${username}_${character}`, parsed);
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to restore messages:', err);
+    }
+  }, [character]);
+
+  useEffect(() => {
+    saveMessages(messages);
+
+    const handleBeforeUnload = () => saveMessages(messages);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      saveMessages(messages); // ensure flush before unmount
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [messages, character]);
 
   const avatar =
     character === 'jinx' ? '/jinx portrait.jpg' : '/chloe portrait.jpg';
