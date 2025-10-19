@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { PhoneOff, Mic, MicOff, PhoneCall } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export default function VoiceCallButton({
   character,
@@ -254,44 +255,47 @@ export default function VoiceCallButton({
         </div>
       )}
 
-      {inCall && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex flex-col items-center justify-center text-white z-50">
-          <img
-            src={avatar}
-            className="w-24 h-24 rounded-full shadow-lg mb-4"
-            alt={character}
-          />
-          <h2 className="text-xl font-semibold mb-1">
-            {character === 'jinx' ? 'Jinx' : 'Chloe'}
-          </h2>
-          <p className="text-gray-300 text-sm mb-8">
-            {recording ? 'Listening...' : 'Thinking...'}
-          </p>
+      {inCall &&
+        typeof window !== 'undefined' &&
+        createPortal(
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex flex-col items-center justify-center text-white z-50">
+            <img
+              src={avatar}
+              className="w-24 h-24 rounded-full shadow-lg mb-4"
+              alt={character}
+            />
+            <h2 className="text-xl font-semibold mb-1">
+              {character === 'jinx' ? 'Jinx' : 'Chloe'}
+            </h2>
+            <p className="text-gray-300 text-sm mb-8">
+              {recording ? 'Listening...' : 'Thinking...'}
+            </p>
 
-          <div className="flex gap-8">
-            <button
-              onClick={recording ? stopRecording : startRecording}
-              className={`p-6 rounded-full transition ${
-                recording
-                  ? 'bg-red-600 animate-pulse'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              {recording ? (
-                <MicOff className="w-6 h-6" />
-              ) : (
-                <Mic className="w-6 h-6" />
-              )}
-            </button>
-            <button
-              onClick={endCall}
-              className="p-6 rounded-full bg-gray-800 hover:bg-gray-900 transition"
-            >
-              <PhoneOff className="w-6 h-6 text-red-400" />
-            </button>
-          </div>
-        </div>
-      )}
+            <div className="flex gap-8">
+              <button
+                onClick={recording ? stopRecording : startRecording}
+                className={`p-6 rounded-full transition ${
+                  recording
+                    ? 'bg-red-600 animate-pulse'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {recording ? (
+                  <MicOff className="w-6 h-6" />
+                ) : (
+                  <Mic className="w-6 h-6" />
+                )}
+              </button>
+              <button
+                onClick={endCall}
+                className="p-6 rounded-full bg-gray-800 hover:bg-gray-900 transition"
+              >
+                <PhoneOff className="w-6 h-6 text-red-400" />
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
