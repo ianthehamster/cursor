@@ -24,7 +24,9 @@ export default function VoiceCallButton({
   const unlockAudio = async () => {
     try {
       const UnlockCtx =
-        window.AudioContext || (window as any).webkitAudioContext;
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
       const ctx = new UnlockCtx();
       const buffer = ctx.createBuffer(1, 1, 22050);
       const src = ctx.createBufferSource();
