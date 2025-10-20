@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PhoneOff, Mic, MicOff, PhoneCall } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
@@ -9,9 +9,9 @@ export default function VoiceCallButton({
 }) {
   const inCallRef = useRef(false);
   const sessionIdRef = useRef(`call-${Date.now()}`);
-
   const [inCall, setInCall] = useState(false);
   const [recording, setRecording] = useState(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -20,11 +20,29 @@ export default function VoiceCallButton({
   const streamRef = useRef<MediaStream | null>(null);
   const playbackCtxRef = useRef<AudioContext | null>(null);
 
+  // 🔓 unlock AudioContext on first user gesture (mobile fix)
+  const unlockAudio = async () => {
+    try {
+      const UnlockCtx =
+        window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new UnlockCtx();
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      src.start(0);
+      await ctx.close();
+      console.log('🔓 AudioContext unlocked for mobile');
+    } catch (e) {
+      console.warn('Audio unlock skipped:', e);
+    }
+  };
+
   const startCall = async () => {
+    await unlockAudio();
+    await playTone('start');
     setInCall(true);
     inCallRef.current = true;
-    await playTone('start');
-
     await startRecording();
   };
 
@@ -33,7 +51,6 @@ export default function VoiceCallButton({
     stopRecording();
     cleanupAudioContext();
 
-    // 🛑 stop any ongoing playback
     if (playbackCtxRef.current) {
       try {
         playbackCtxRef.current.close();
@@ -41,7 +58,6 @@ export default function VoiceCallButton({
       playbackCtxRef.current = null;
     }
 
-    // 🔕 play hang-up tone before closing overlay
     await playTone('end');
     setTimeout(() => setInCall(false), 300);
   };
@@ -74,16 +90,35 @@ export default function VoiceCallButton({
         console.log('Call ended too soon — skipping reply.');
         return;
       }
-
-      // ⚡ Progressive streaming playback
+      // ⚡ Progressive streaming playback (desktop + mobile)
       const mediaSource = new MediaSource();
       const audio = new Audio();
       audio.src = URL.createObjectURL(mediaSource);
-      audio.play();
+
+      // helper: try to play when data is available
+      const safePlay = async () => {
+        try {
+          await audio.play();
+        } catch (err) {
+          console.warn('Initial play blocked:', err);
+          document.addEventListener(
+            'touchend',
+            async () => {
+              try {
+                await audio.play();
+              } catch (e) {
+                console.error('Retry failed:', e);
+              }
+            },
+            { once: true },
+          );
+        }
+      };
 
       mediaSource.addEventListener('sourceopen', async () => {
         const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
         const reader = response.body!.getReader();
+        let firstChunk = true;
 
         while (true) {
           const { value, done } = await reader.read();
@@ -92,32 +127,74 @@ export default function VoiceCallButton({
             break;
           }
           if (value && !sourceBuffer.updating) {
-            await new Promise((resolve) => {
-              sourceBuffer.addEventListener('updateend', resolve, {
+            await new Promise<void>((resolve) => {
+              const handleUpdate = () => resolve();
+              sourceBuffer.addEventListener('updateend', handleUpdate, {
                 once: true,
               });
               sourceBuffer.appendBuffer(value);
             });
+            // play only after first data appended
+            if (firstChunk) {
+              firstChunk = false;
+              await safePlay();
+            }
           }
         }
       });
 
-      // re-arm mic after playback
-      // audio.onended = () => {
-      //   if (inCall) {
-      //     setRecording(true);
-      //     startRecording();
+      // // ⚡ Progressive streaming playback with retry (mobile-safe)
+      // const mediaSource = new MediaSource();
+      // const audio = new Audio();
+      // audio.src = URL.createObjectURL(mediaSource);
+
+      // const tryPlay = async () => {
+      //   try {
+      //     await audio.play();
+      //   } catch (err) {
+      //     console.warn('Playback blocked, retrying on user interaction', err);
+      //     document.addEventListener(
+      //       'touchend',
+      //       async () => {
+      //         try {
+      //           await audio.play();
+      //         } catch (err2) {
+      //           console.error('Retry failed:', err2);
+      //         }
+      //       },
+      //       { once: true },
+      //     );
       //   }
       // };
+
+      // await tryPlay();
+
+      // mediaSource.addEventListener('sourceopen', async () => {
+      //   const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+      //   const reader = response.body!.getReader();
+
+      //   while (true) {
+      //     const { value, done } = await reader.read();
+      //     if (done) {
+      //       mediaSource.endOfStream();
+      //       break;
+      //     }
+      //     if (value && !sourceBuffer.updating) {
+      //       await new Promise((resolve) => {
+      //         sourceBuffer.addEventListener('updateend', resolve, {
+      //           once: true,
+      //         });
+      //         sourceBuffer.appendBuffer(value);
+      //       });
+      //     }
+      //   }
+      // });
+
+      // when ElevenLabs finishes speaking
       audio.onended = async () => {
         if (inCallRef.current) {
-          // Immediately flip to "Listening..." visually
           setRecording(true);
-
-          // Wait a small beat to avoid mic conflict with the player
           await new Promise((r) => setTimeout(r, 200));
-
-          // Restart mic
           startRecording();
         }
       };
@@ -152,8 +229,8 @@ export default function VoiceCallButton({
     const checkSilence = () => {
       analyser.getByteFrequencyData(dataArray);
       const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-
       const silenceThreshold = 10;
+
       if (avg < silenceThreshold) {
         if (!silenceTimerRef.current) {
           silenceTimerRef.current = setTimeout(() => {
@@ -184,61 +261,17 @@ export default function VoiceCallButton({
 
   const playTone = async (type: 'start' | 'end') => {
     const audio = new Audio();
-
-    if (type === 'start') {
-      audio.src = '/sounds/call_start.mp3'; // ringing or connecting sound
-    } else {
-      audio.src = '/sounds/call_end.mp3'; // hang-up sound
-    }
-
+    audio.src =
+      type === 'start' ? '/sounds/call_start.mp3' : '/sounds/call_end.mp3';
     try {
       await audio.play();
     } catch (err) {
       console.warn('Autoplay blocked, waiting for user interaction', err);
     }
-
     return new Promise<void>((resolve) => {
       audio.addEventListener('ended', () => resolve(), { once: true });
     });
   };
-
-  // const playTone = async (type: 'start' | 'end') => {
-  //   const ctx = new (window.AudioContext ||
-  //     (window as any).webkitAudioContext)();
-  //   const gain = ctx.createGain();
-  //   gain.connect(ctx.destination);
-
-  //   const makeOsc = (
-  //     freq: number,
-  //     start: number,
-  //     duration: number,
-  //     type = 'sine',
-  //   ) => {
-  //     const osc = ctx.createOscillator();
-  //     osc.type = type as OscillatorType;
-  //     osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-  //     osc.connect(gain);
-  //     osc.start(ctx.currentTime + start);
-  //     osc.stop(ctx.currentTime + start + duration);
-  //     return osc;
-  //   };
-
-  //   gain.gain.setValueAtTime(0.25, ctx.currentTime);
-
-  //   if (type === 'start') {
-  //     // “connecting” tone — two quick ascending pulses
-  //     makeOsc(440, 0, 0.2, 'triangle');
-  //     makeOsc(660, 0.25, 0.25, 'triangle');
-  //     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
-  //   } else {
-  //     // “hang-up” tone — short descending dual-tone
-  //     makeOsc(750, 0, 0.15, 'sawtooth');
-  //     makeOsc(500, 0.15, 0.25, 'sawtooth');
-  //     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.45);
-  //   }
-
-  //   setTimeout(() => ctx.close(), 600);
-  // };
 
   const avatar =
     character === 'jinx'
